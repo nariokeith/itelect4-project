@@ -2,7 +2,8 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    "rootDir": "./src",
+    // "." so both src/ and types/ are part of the program
+    "rootDir": ".",
     "outDir": "./dist",
 
     // Environment Settings
@@ -35,11 +36,13 @@
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
+    // off: incompatible with ESM import/export syntax in a CommonJS project
+    "verbatimModuleSyntax": false,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "esModuleInterop": true,
     "skipLibCheck": true,
-  }
+  },
+  "exclude": ["GT1", "dist", "node_modules"]
 }
