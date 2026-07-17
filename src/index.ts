@@ -1,13 +1,13 @@
-import type { User, Course, Submission } from "../types/index";
-import type { StringOrNumber } from "../types/index";
+import type { User, Course, Submission } from "./types/index";
+import type { StringOrNumber } from "./types/index";
 import type {
   ApiResponse,
   UserUpdate,
   UserPreview,
   PublicUser,
   RoleCount,
-} from "../types/index";
-import { SubmissionStatus, Role } from "../types/index";
+} from "./types/index";
+import { SubmissionStatus, Role } from "./types/index";
 // ===== PRIMITIVE TYPE ANNOTATIONS =====
 // Variables with explicit types
 const projectName: string = "itelect4-project";

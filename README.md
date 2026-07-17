@@ -31,11 +31,13 @@ A mini course-submission tracker for ITELECT4. The system models **Users** (stud
 
 ```bash
 npm install
-npx ts-node src/index.ts
+npm run dev
 ```
 
-To type-check without emitting JS:
+Then open the printed local URL (http://localhost:5173) in your browser.
+
+To type-check and build for production:
 
 ```bash
-npx tsc --noEmit
+npm run build
 ```
