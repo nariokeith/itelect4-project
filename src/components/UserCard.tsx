@@ -12,15 +12,10 @@ function UserCard({ user, onSelect }: UserCardProps) {
     onSelect(user);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    console.log("Search:", e.target.value);
-  };
-
   return (
     <div className="user-card">
       <h3>{user.name}</h3>
       <button onClick={handleClick}>Select</button>
-      <input onChange={handleChange} placeholder="Search..." />
     </div>
   );
 }
