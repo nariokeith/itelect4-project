@@ -1,111 +1,110 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+/* ===== CUSTOM CURSOR =====
+   ArrowCursor adds .has-custom-cursor to <html> only after it has mounted a
+   replacement -- which it does not do on a touch device, or under reduced
+   motion. So a page that never runs the script, and a reader who has asked
+   for less motion, both keep a real cursor with whatever size and contrast
+   the OS gives it.
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+   The descendant selector is required: `cursor` is inherited, but preflight
+   and Tailwind's own cursor-* utilities set it explicitly on buttons, links
+   and inputs, and those declarations would win. Unlayered CSS already
+   outranks every layered utility, so !important is not needed for those --
+   it is here for the one case that outranks even that, an inline
+   `style="cursor:..."`, which is the only way a stray native cursor can
+   still surface once this class is on. */
+.has-custom-cursor,
+.has-custom-cursor *,
+.has-custom-cursor *::before,
+.has-custom-cursor *::after {
+  cursor: none !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* ===== DESIGN TOKENS =====
+   Tailwind v4 reads these straight out of CSS -- every --color-* below
+   becomes a utility (bg-paper, text-graded, border-rule, ...).
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
+   Direction: "Registry" -- an academic record book crossed with version
+   control, since this app tracks git-tagged submissions.
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
+   The rule this palette enforces: COLOUR MEANS STATE. There is no
+   decorative accent. Everything structural is ink on paper; the only
+   hues in the app report whether a submission is graded, pending or
+   late. If something is coloured, it is telling you something. */
+@theme {
+  /* --- surfaces --- */
+  --color-paper: #fbfbf9; /* light page: barely-warm white, not cream */
+  --color-rule: #dedddb; /* hairlines and borders, light */
+  --color-ink: #16161a; /* text on light, page on dark */
+  --color-ink-raise: #202027; /* card surface, dark */
+  --color-ink-line: #2e2e36; /* hairlines and borders, dark */
 
-body {
-  margin: 0;
-}
+  /* --- text --- */
+  --color-graphite: #5c5c63; /* secondary text, light */
+  --color-graphite-lift: #9a9aa2; /* secondary text, dark */
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
+  /* --- status: the ONLY colour in the app --- */
+  --color-graded: #1a6b4f;
+  --color-graded-lift: #5fd9a0;
+  --color-pending: #8a6a12;
+  --color-pending-lift: #e8c154;
+  --color-late: #9b2c2c;
+  --color-late-lift: #f08a8a;
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
+  /* --- type: anything a machine also reads is mono,
+         anything only a human reads is sans --- */
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
+  /* ===== BEVEL TOKENS =====
+     Registered here, not written as CSS rules, so each one compiles to a
+     real Tailwind utility (shadow-pill, bg-linear-to-b from-bevel-hi, ...).
+     @theme IS the Tailwind v4 config mechanism -- v4 replaced
+     tailwind.config.js with it -- so the components stay utility-only and
+     no hand-written class like .f-card is ever needed.
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+     Depth is ported from 3d-data-cards-menu-gsap; hue is not. The
+     reference's cast shadows are warm brown, rgba(40,30,10,...). These are
+     neutral ink, which is what keeps the port from reading as beige. */
+
+  /* --- surfaces: the gradient stops of a card face --- */
+  --color-bevel-hi: #ffffff;
+  --color-bevel-lo: #e3e2df;
+  --color-bevel-hi-dark: #2b2b34;
+  --color-bevel-lo-dark: #17171c;
+
+  /* --- the inset mini tile. These INVERT between themes: an ink tile on an
+         ink card would be invisible in dark mode. SubmissionBadge already
+         inverts the same way, so this follows an existing rule. --- */
+  --color-tile-hi: #202027;
+  --color-tile-lo: #0e0e11;
+  --color-tile-hi-dark: #fbfbf9;
+  --color-tile-lo-dark: #e6e5e2;
+
+  /* --- the card bevel: two cast shadows below, two inset edges.
+         Never pair these with a shadow-<color> utility -- each layer
+         compiles to var(--tw-shadow-color, ...), so one colour utility
+         would repaint every layer at once. --- */
+  --shadow-card:
+    0 22px 40px -16px rgba(22, 22, 26, 0.22),
+    0 8px 16px -4px rgba(22, 22, 26, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -3px 6px rgba(22, 22, 26, 0.1);
+  --shadow-card-dark:
+    0 22px 40px -16px rgba(0, 0, 0, 0.55),
+    0 8px 16px -4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.55);
+
+  --shadow-mini:
+    0 10px 18px -6px rgba(22, 22, 26, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-mini-dark:
+    0 10px 18px -6px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px rgba(22, 22, 26, 0.25);
 }
