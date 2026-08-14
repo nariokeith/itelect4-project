@@ -27,8 +27,12 @@ function CourseCard({ course, variant = "default" }: CourseCardProps) {
   const cardRef = useMiniTilt();
 
   return (
-    // No cursor-pointer -- the reference sets it (style.css:319) on a card
-    // that does nothing when clicked. Nothing here is clickable either.
+    // Still no cursor-pointer, and the card is still a plain div. On the
+    // courses grid it is now wrapped in a <Link>, so the whole face IS
+    // clickable -- but the <a> is what carries the href, the focus ring and
+    // the pointer semantics. Putting them here as well would claim this
+    // component is interactive on its own, which it is not: the detail page
+    // renders the same card outside any link.
     <div
       ref={cardRef}
       className={`${cardFace} ${
