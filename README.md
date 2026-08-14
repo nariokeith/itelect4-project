@@ -27,6 +27,30 @@ A mini course-submission tracker for ITELECT4. The system models **Users** (stud
 - `SubmissionStatus` — regular enum (Pending, Graded, Late)
 - `Role` — const enum (Student, Admin, Instructor)
 
+## Routes (GT3 Part 1)
+
+Routing uses **React Router v8** — imported from `react-router`, not `react-router-dom`,
+which no longer exists in v8. `src/App.tsx` holds the entire route table and nothing else;
+to see what pages exist, read that one file.
+
+| Path | Page | Notes |
+|---|---|---|
+| `/` | `DashboardPage` | index route |
+| `/courses` | `CoursesPage` | search + grid, each card links to its detail page |
+| `/courses/:code` | `CourseDetailPage` | URL parameter, `useParams<{ code: string }>()` |
+| `/people` | `PeoplePage` | selecting a person navigates with `useNavigate()` |
+| `/people/:id` | `PersonDetailPage` | numeric URL parameter, converted and validated |
+| `/submissions` | `SubmissionsPage` | **protected** — redirects to `/login` without a token |
+| `/login` | `LoginPage` | sets the token, then navigates away |
+| `*` | `NotFoundPage` | catch-all, so no URL renders blank |
+
+Every route is nested inside `Layout`, which owns the nav bar, the dark mode toggle, the
+density control and the `<Outlet />` each page renders into. `ProtectedRoute` is a pathless
+layout route: it guards what it wraps without adding a segment to the URL.
+
+Auth is a typed Zustand store (`src/store/authStore.ts`) holding `token`, `userName`,
+`login` and `logout`. It is in-memory only, so a full page reload signs you out.
+
 ## How to Install and Run
 
 ```bash
