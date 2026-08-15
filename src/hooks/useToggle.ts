@@ -1,7 +1,5 @@
-// src/hooks/useToggle.ts
 import { useState } from "react";
 
-// Explicit return type: a tuple of [current value, toggle function]
 function useToggle(initialValue: boolean): [boolean, () => void] {
   const [value, setValue] = useState<boolean>(initialValue);
 

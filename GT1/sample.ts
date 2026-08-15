@@ -1,5 +1,3 @@
-// sample.js -- provided for GT1 Part 1
-// Task: convert to TS (rename sample.ts). Annotate all vars, params, return types
 function getUser(id) {
 return {
 id: id,

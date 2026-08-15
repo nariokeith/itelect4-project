@@ -1,21 +1,11 @@
-// src/components/CourseCard.tsx
 import useMiniTilt from "../hooks/useMiniTilt";
 import type { Course } from "../types/index";
 
 interface CourseCardProps {
   course: Course;
-  variant?: "default" | "compact"; // optional prop, union type
+  variant?: "default" | "compact";
 }
 
-// Tailwind only sees COMPLETE class names as literal text, so these are
-// written out in full rather than assembled from pieces.
-// The hover lift is an arbitrary-property utility on `translate`, not a
-// transform utility: GSAP owns `transform` on this element during the
-// scroll reveal, and Tailwind v4 writes translate utilities to the separate
-// `translate` property, so the two compose instead of fighting.
-// (Careful writing that class name in prose -- Tailwind scans comments too,
-// and a placeholder like the one that used to be here got compiled into a
-// junk rule.)
 const cardFace =
   "group relative flex flex-col overflow-hidden bg-linear-to-b from-bevel-hi to-bevel-lo shadow-card transition-[translate] duration-500 ease-[cubic-bezier(0.6,0,0.2,1)] hover:[translate:0_-8px] motion-reduce:transition-none motion-reduce:hover:[translate:0_0] dark:from-bevel-hi-dark dark:to-bevel-lo-dark dark:shadow-card-dark";
 
@@ -27,12 +17,6 @@ function CourseCard({ course, variant = "default" }: CourseCardProps) {
   const cardRef = useMiniTilt();
 
   return (
-    // Still no cursor-pointer, and the card is still a plain div. On the
-    // courses grid it is now wrapped in a <Link>, so the whole face IS
-    // clickable -- but the <a> is what carries the href, the focus ring and
-    // the pointer semantics. Putting them here as well would claim this
-    // component is interactive on its own, which it is not: the detail page
-    // renders the same card outside any link.
     <div
       ref={cardRef}
       className={`${cardFace} ${
@@ -40,8 +24,6 @@ function CourseCard({ course, variant = "default" }: CourseCardProps) {
       }`}
     >
       <div className="flex items-center justify-between gap-3">
-        {/* The mini tile is the card's one piece of physical furniture, so
-            compact -- which exists to fit more on screen -- drops it. */}
         {!isCompact && (
           <div
             data-mini
@@ -54,8 +36,6 @@ function CourseCard({ course, variant = "default" }: CourseCardProps) {
         <span className={tagChip}>{course.units} units</span>
       </div>
 
-      {/* a course code is an identifier -- mono, and set in full-strength
-          ink: in this palette colour is reserved for reporting state */}
       <h3
         className={`font-mono font-medium tracking-tight text-ink dark:text-paper ${
           isCompact ? "text-sm" : "text-lg"

@@ -1,11 +1,3 @@
-// src/data/mockData.ts
-// GT2 kept these three arrays at the top of App.tsx. Several pages need the
-// same records now -- CoursesPage and CourseDetailPage read the same courses,
-// PeoplePage and PersonDetailPage read the same users -- so the data moves
-// into one file that every page imports from.
-//
-// Still the mock "server" that CoursesPage's useEffect pretends to fetch from.
-// Every object satisfies the GT1 interfaces; nothing here is asserted or cast.
 import type { User, Course, Submission } from "../types/index";
 
 export const allUsers: User[] = [
@@ -46,9 +38,6 @@ export const allCourses: Course[] = [
   },
 ];
 
-// Fixed dates rather than new Date(): a record that renders a different day
-// every time the page reloads is a value you cannot check a screenshot
-// against. The month argument is 0-indexed, so 7 is August.
 export const allSubmissions: Submission[] = [
   {
     id: 1, studentId: 1, courseCode: "ITELECT4",

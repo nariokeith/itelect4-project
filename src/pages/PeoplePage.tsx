@@ -1,7 +1,3 @@
-// src/pages/PeoplePage.tsx
-// The User entity, given a screen of its own. GT2's UserCard is reused
-// untouched: its onSelect prop used to store a value in state, and here the
-// very same prop navigates instead.
 import { useNavigate } from "react-router";
 import type { User } from "../types/index";
 import UserCard from "../components/UserCard";
@@ -11,9 +7,6 @@ import { pageHeading, sectionLabel } from "../styles/ui";
 function PeoplePage() {
   const navigate = useNavigate();
 
-  // Inside an event handler, which is where navigate() belongs. UserCard
-  // calls this with the whole user, so the id for the URL comes from there
-  // rather than from a second lookup.
   const handleSelect = (user: User): void => {
     navigate(`/people/${user.id}`);
   };
