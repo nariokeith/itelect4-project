@@ -1,6 +1,3 @@
-// src/pages/NotFoundPage.tsx
-// The fix for the blank page a router gives you by default: a URL that
-// matches no route renders NOTHING, with no error. path="*" catches those.
 import { Link } from "react-router";
 import { pageHeading, notFoundLabel, notFoundPanel } from "../styles/ui";
 

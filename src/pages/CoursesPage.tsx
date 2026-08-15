@@ -1,7 +1,3 @@
-// src/pages/CoursesPage.tsx
-// GT2's search box and responsive grid, moved out of App.tsx. All six pieces
-// of state came across unchanged -- the only genuinely new parts are the
-// <Link> around each card and reading density out of the outlet context.
 import { useState, useEffect, useRef } from "react";
 import type React from "react";
 import { Link, useOutletContext } from "react-router";
@@ -20,13 +16,8 @@ import {
 } from "../styles/ui";
 
 function CoursesPage() {
-  // This page is rendered by a <Route>, not as a child element, so Layout
-  // cannot pass it props. useOutletContext is how a routed page reads a value
-  // from the layout above it, and the generic is what makes isCompact typed
-  // rather than unknown.
   const { isCompact } = useOutletContext<LayoutContext>();
 
-  // All six of these moved from GT2's App.tsx, unchanged
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
@@ -34,7 +25,6 @@ function CoursesPage() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const previousSearch = usePrevious(searchTerm);
 
-  // The mock fetch: an empty deps array means "run once, on mount"
   useEffect(() => {
     setTimeout(() => {
       setCourses(allCourses);
@@ -43,36 +33,27 @@ function CoursesPage() {
   }, []);
 
   const focusSearch = (): void => {
-    // .current can be null, so optional chaining guards the call
     searchInputRef.current?.focus();
   };
 
-  // Focus the input programmatically once loading finishes
   useEffect(() => {
     if (!isLoading) {
       focusSearch();
     }
   }, [isLoading]);
 
-  // React.ChangeEvent<HTMLInputElement> types e.target as an <input>
   const handleSearchChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ): void => {
     setSearchTerm(e.target.value);
   };
 
-  // Derived, recomputed every render -- not stored in state.
-  // Matches the code as well as the title: typing ITELECT has to work.
   const filteredCourses = courses.filter(
     (c) =>
       c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ===== STYLED LOADING STATE =====
-  // Skeleton cards in the real grid, so the layout does not jump when the
-  // data lands. Early return, same pattern as GT2 -- but it returns only the
-  // page body now, because Layout owns the frame.
   if (isLoading) {
     return (
       <div>
@@ -93,7 +74,6 @@ function CoursesPage() {
     );
   }
 
-  // ===== STYLED ERROR STATE =====
   if (isError) {
     return (
       <div
@@ -123,7 +103,6 @@ function CoursesPage() {
       <p className={sectionLabel}>catalog</p>
       <h2 className={`mt-2 ${pageHeading}`}>Courses</h2>
 
-      {/* ===== SEARCH ===== */}
       <div className="mt-6 flex gap-2">
         <input
           ref={searchInputRef}
@@ -149,7 +128,6 @@ function CoursesPage() {
         </p>
       )}
 
-      {/* ===== THE GRID ===== */}
       <section className="mt-8">
         <div className="flex items-baseline gap-3">
           <h3 className={sectionLabel}>Results</h3>
@@ -162,9 +140,6 @@ function CoursesPage() {
         {filteredCourses.length > 0 ? (
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCourses.map((c) => (
-              // `block` because <a> is inline by default, and an inline grid
-              // item would collapse the card it wraps. The rounding matches
-              // the card face so the focus ring traces the real silhouette.
               <Link
                 key={c.code}
                 to={`/courses/${c.code}`}

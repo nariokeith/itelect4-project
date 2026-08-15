@@ -1,6 +1,3 @@
-// src/pages/CourseDetailPage.tsx
-// The page behind /courses/:code -- it reads which course to show out of the
-// URL itself, so the address bar is what selects the record.
 import { useNavigate, useParams } from "react-router";
 import CourseCard from "../components/CourseCard";
 import { allCourses, allSubmissions } from "../data/mockData";
@@ -15,19 +12,11 @@ import {
 } from "../styles/ui";
 
 function CourseDetailPage() {
-  // Reads whatever is in the :code slot of the URL. The name `code` must
-  // match the :code in App.tsx's path exactly -- spell it differently and
-  // you get undefined, silently, with no error to tell you why.
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
 
-  // Turn that string into a real Course object
   const course = allCourses.find((c) => c.code === code);
 
-  // The URL is user input -- anyone can type anything into it. `code` is
-  // string | undefined even though we typed the generic, because TypeScript
-  // cannot promise the URL contains anything. This check is required, not
-  // politeness.
   if (course === undefined) {
     return (
       <div className={notFoundPanel}>
@@ -37,9 +26,6 @@ function CourseDetailPage() {
           No course is filed under the code{" "}
           <span className="font-mono text-ink dark:text-paper">{code}</span>.
         </p>
-        {/* useNavigate() returns a function you call from inside an event
-            handler. Never call it in the component body -- it would run on
-            every render and loop forever. */}
         <button
           onClick={() => navigate("/courses")}
           className={`${quietButton} mt-4`}

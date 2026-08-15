@@ -1,20 +1,6 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ===== CUSTOM CURSOR =====
-   ArrowCursor adds .has-custom-cursor to <html> only after it has mounted a
-   replacement -- which it does not do on a touch device, or under reduced
-   motion. So a page that never runs the script, and a reader who has asked
-   for less motion, both keep a real cursor with whatever size and contrast
-   the OS gives it.
-
-   The descendant selector is required: `cursor` is inherited, but preflight
-   and Tailwind's own cursor-* utilities set it explicitly on buttons, links
-   and inputs, and those declarations would win. Unlayered CSS already
-   outranks every layered utility, so !important is not needed for those --
-   it is here for the one case that outranks even that, an inline
-   `style="cursor:..."`, which is the only way a stray native cursor can
-   still surface once this class is on. */
 .has-custom-cursor,
 .has-custom-cursor *,
 .has-custom-cursor *::before,
@@ -22,30 +8,16 @@
   cursor: none !important;
 }
 
-/* ===== DESIGN TOKENS =====
-   Tailwind v4 reads these straight out of CSS -- every --color-* below
-   becomes a utility (bg-paper, text-graded, border-rule, ...).
-
-   Direction: "Registry" -- an academic record book crossed with version
-   control, since this app tracks git-tagged submissions.
-
-   The rule this palette enforces: COLOUR MEANS STATE. There is no
-   decorative accent. Everything structural is ink on paper; the only
-   hues in the app report whether a submission is graded, pending or
-   late. If something is coloured, it is telling you something. */
 @theme {
-  /* --- surfaces --- */
-  --color-paper: #fbfbf9; /* light page: barely-warm white, not cream */
-  --color-rule: #dedddb; /* hairlines and borders, light */
-  --color-ink: #16161a; /* text on light, page on dark */
-  --color-ink-raise: #202027; /* card surface, dark */
-  --color-ink-line: #2e2e36; /* hairlines and borders, dark */
+  --color-paper: #fbfbf9;
+  --color-rule: #dedddb;
+  --color-ink: #16161a;
+  --color-ink-raise: #202027;
+  --color-ink-line: #2e2e36;
 
-  /* --- text --- */
-  --color-graphite: #5c5c63; /* secondary text, light */
-  --color-graphite-lift: #9a9aa2; /* secondary text, dark */
+  --color-graphite: #5c5c63;
+  --color-graphite-lift: #9a9aa2;
 
-  /* --- status: the ONLY colour in the app --- */
   --color-graded: #1a6b4f;
   --color-graded-lift: #5fd9a0;
   --color-pending: #8a6a12;
@@ -53,41 +25,20 @@
   --color-late: #9b2c2c;
   --color-late-lift: #f08a8a;
 
-  /* --- type: anything a machine also reads is mono,
-         anything only a human reads is sans --- */
   --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* ===== BEVEL TOKENS =====
-     Registered here, not written as CSS rules, so each one compiles to a
-     real Tailwind utility (shadow-pill, bg-linear-to-b from-bevel-hi, ...).
-     @theme IS the Tailwind v4 config mechanism -- v4 replaced
-     tailwind.config.js with it -- so the components stay utility-only and
-     no hand-written class like .f-card is ever needed.
-
-     Depth is ported from 3d-data-cards-menu-gsap; hue is not. The
-     reference's cast shadows are warm brown, rgba(40,30,10,...). These are
-     neutral ink, which is what keeps the port from reading as beige. */
-
-  /* --- surfaces: the gradient stops of a card face --- */
   --color-bevel-hi: #ffffff;
   --color-bevel-lo: #e3e2df;
   --color-bevel-hi-dark: #2b2b34;
   --color-bevel-lo-dark: #17171c;
 
-  /* --- the inset mini tile. These INVERT between themes: an ink tile on an
-         ink card would be invisible in dark mode. SubmissionBadge already
-         inverts the same way, so this follows an existing rule. --- */
   --color-tile-hi: #202027;
   --color-tile-lo: #0e0e11;
   --color-tile-hi-dark: #fbfbf9;
   --color-tile-lo-dark: #e6e5e2;
 
-  /* --- the card bevel: two cast shadows below, two inset edges.
-         Never pair these with a shadow-<color> utility -- each layer
-         compiles to var(--tw-shadow-color, ...), so one colour utility
-         would repaint every layer at once. --- */
   --shadow-card:
     0 22px 40px -16px rgba(22, 22, 26, 0.22),
     0 8px 16px -4px rgba(22, 22, 26, 0.07),

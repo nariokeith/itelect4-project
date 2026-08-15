@@ -1,7 +1,3 @@
-// src/pages/PersonDetailPage.tsx
-// The page behind /people/:id. Where :code was already a string, this
-// parameter is a NUMBER in the data and a string in the URL, so it has to be
-// converted and validated before it can be looked up.
 import { Link, useNavigate, useParams } from "react-router";
 import { allSubmissions, allUsers } from "../data/mockData";
 import {
@@ -15,15 +11,9 @@ import {
 } from "../styles/ui";
 
 function PersonDetailPage() {
-  // Every URL parameter arrives as a string, so the generic says string here
-  // even though User.id is a number.
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Number(undefined) is NaN and Number("abc") is NaN, so this one conversion
-  // covers both a missing parameter and a nonsense one. Number.isInteger also
-  // rejects "1.5", which would otherwise never match an id and would fall
-  // through to the not-found branch anyway -- but for a less obvious reason.
   const personId = Number(id);
   const person = Number.isInteger(personId)
     ? allUsers.find((u) => u.id === personId)
@@ -69,7 +59,6 @@ function PersonDetailPage() {
         </div>
         <div className="mt-3 flex items-baseline justify-between gap-4 border-t border-rule pt-3 dark:border-ink-line">
           <dt className={sectionLabel}>status</dt>
-          {/* colour reports state -- the same rule UserCard follows */}
           <dd
             className={`font-mono text-xs uppercase tracking-[0.14em] ${
               person.isActive

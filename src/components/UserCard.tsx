@@ -1,4 +1,3 @@
-// src/components/UserCard.tsx
 import type React from "react";
 import useMiniTilt from "../hooks/useMiniTilt";
 import type { User } from "../types/index";
@@ -8,16 +7,12 @@ interface UserCardProps {
   onSelect: (user: User) => void;
 }
 
-// Same face as CourseCard, written out in full: Tailwind only sees
-// COMPLETE class names as literal text.
 const cardFace =
   "group relative flex flex-col gap-4 overflow-hidden rounded-[28px] bg-linear-to-b from-bevel-hi to-bevel-lo p-6 shadow-card transition-[translate] duration-500 ease-[cubic-bezier(0.6,0,0.2,1)] hover:[translate:0_-8px] motion-reduce:transition-none motion-reduce:hover:[translate:0_0] dark:from-bevel-hi-dark dark:to-bevel-lo-dark dark:shadow-card-dark";
 
 const tagChip =
   "rounded-full bg-ink/6 px-3 py-1 font-mono text-[0.625rem] font-medium tracking-[0.18em] text-graphite uppercase dark:bg-paper/10 dark:text-graphite-lift";
 
-// "Juan dela Cruz" -> "JC". Lowercase particles are skipped, and a
-// single-word name still yields one letter.
 const initials = (name: string): string =>
   name
     .split(" ")
@@ -35,8 +30,6 @@ function UserCard({ user, onSelect }: UserCardProps) {
   };
 
   return (
-    // The card stays a div. It contains a real button, and wrapping an
-    // interactive element in another interactive element is invalid.
     <div ref={cardRef} className={cardFace}>
       <div className="flex items-center justify-between gap-3">
         <div
@@ -49,12 +42,10 @@ function UserCard({ user, onSelect }: UserCardProps) {
         <span className={tagChip}>{user.role}</span>
       </div>
 
-      {/* a name is read only by humans -- sans */}
       <h3 className="text-base font-semibold text-ink dark:text-paper">
         {user.name}
       </h3>
 
-      {/* an email is also read by machines -- mono */}
       <p className="flex-1 truncate font-mono text-xs text-graphite dark:text-graphite-lift">
         {user.email}
       </p>

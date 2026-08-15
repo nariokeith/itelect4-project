@@ -1,4 +1,3 @@
-// src/components/SubmissionBadge.tsx
 import type React from "react";
 import type { Submission } from "../types/index";
 
@@ -14,11 +13,6 @@ const SubmissionBadge: React.FC<SubmissionBadgeProps> = ({
   const isGraded = submission.score !== undefined;
 
   return (
-    // The one loud object on the page: a submission drawn as a physical
-    // git tag, because `git tag gt2` is what this whole task ships.
-    // The clip-path cuts the notched left point; the dot is its eyelet.
-    // The tag inverts between themes rather than holding one hue -- in a
-    // palette where colour reports state, a decorative accent would lie.
     <div className="relative rounded-r-lg bg-ink py-4 pr-4 pl-10 text-paper shadow-sm [clip-path:polygon(1.25rem_0,100%_0,100%_100%,1.25rem_100%,0_50%)] dark:bg-paper dark:text-ink">
       <span
         aria-hidden="true"
@@ -33,8 +27,6 @@ const SubmissionBadge: React.FC<SubmissionBadgeProps> = ({
             {submission.courseCode}
           </p>
 
-          {/* a repo URL is read by machines -- mono. It wraps rather than
-              truncates: it is the one value on this tag worth reading in full */}
           <p className="mt-1 font-mono text-sm break-all text-paper dark:text-ink">
             {submission.repoUrl}
           </p>
@@ -46,8 +38,6 @@ const SubmissionBadge: React.FC<SubmissionBadgeProps> = ({
           {children}
         </div>
 
-        {/* The status chip -- the only colour on the tag, and the only
-            place the display face appears outside the page title. */}
         <div className="shrink-0 rounded-md bg-paper px-3 py-2 text-center dark:bg-ink">
           <p
             className={`font-display text-2xl leading-none font-bold ${

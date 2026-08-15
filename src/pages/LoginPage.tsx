@@ -1,6 +1,3 @@
-// src/pages/LoginPage.tsx
-// There is no real password -- typing a name is enough. The point is the
-// store write and the redirect, not authentication.
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
@@ -9,16 +6,12 @@ import { pageHeading, sectionLabel } from "../styles/ui";
 function LoginPage() {
   const [name, setName] = useState<string>("");
 
-  // Pull just the login action out of the store
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
-  // useNavigate() gives you a function to call LATER, from inside a handler.
-  // Calling navigate() in the component body would run on every render and
-  // loop forever.
   const handleLogin = (): void => {
-    login(name); // 1. put the token in the store
-    navigate("/submissions"); // 2. then send them where they were going
+    login(name);
+    navigate("/submissions");
   };
 
   return (
