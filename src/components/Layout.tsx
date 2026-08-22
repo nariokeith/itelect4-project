@@ -1,13 +1,13 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Outlet } from "react-router";
 import ArrowCursor from "./ArrowCursor";
-import useToggle from "../hooks/useToggle";
 import useAuthStore from "../store/authStore";
+import useUiStore from "../store/uiStore";
 import { chromePanel, quietButton } from "../styles/ui";
 
-export interface LayoutContext {
-  isCompact: boolean;
-}
+// The useToggle import is GONE -- Layout does not own dark mode or density
+// now, so there is no longer a LayoutContext to hand down through <Outlet />.
+// CoursesPage reads isCompact straight from the store instead.
 
 const baseLink =
   "rounded-md px-3 py-1.5 font-mono text-xs transition focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper focus-visible:outline-none dark:focus-visible:ring-paper dark:focus-visible:ring-offset-ink";
@@ -19,8 +19,12 @@ const idleLink = `${baseLink} text-graphite hover:bg-ink/5 hover:text-ink dark:t
 type Metrics = { left: number; width: number };
 
 function Layout() {
-  const [isDarkMode, toggleDarkMode] = useToggle(false);
-  const [isCompact, toggleCompact] = useToggle(false);
+  // WAS: const [isDarkMode, toggleDarkMode] = useToggle(false);
+  // WAS: const [isCompact, toggleCompact] = useToggle(false);
+  const isDarkMode = useUiStore((state) => state.isDarkMode);
+  const toggleDarkMode = useUiStore((state) => state.toggleDarkMode);
+  const isCompact = useUiStore((state) => state.isCompact);
+  const toggleCompact = useUiStore((state) => state.toggleCompact);
 
   const userName = useAuthStore((state) => state.userName);
   const logout = useAuthStore((state) => state.logout);
@@ -146,7 +150,7 @@ function Layout() {
           </nav>
 
           <main className="mt-8">
-            <Outlet context={{ isCompact } satisfies LayoutContext} />
+            <Outlet />
           </main>
         </div>
       </div>

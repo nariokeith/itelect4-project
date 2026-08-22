@@ -90,3 +90,28 @@ export const enum Role {
   Admin      = "admin",
   Instructor = "instructor",
 }
+
+// ---------------------------------------------------------------- SESSION 7
+// The shapes the API actually returns, which are NOT the ones declared above.
+// JSON has no Date, and json-server rewrites every `id` as a string -- even
+// when db.json spells it as a number. Both types below are DERIVED from the
+// originals, so User and Submission stay the single source of truth: add a
+// field there and these inherit it.
+
+// Omit is from Session 2. The & intersection is from Session 1.
+
+export type ApiUser = Omit<User, "id"> & {
+  id: string; // json-server hands back "3", never 3
+};
+
+export type ApiSubmission = Omit<
+  Submission,
+  "id" | "studentId" | "submittedAt"
+> & {
+  id: string; // json-server ids look like "z4U3v8og06g"
+  studentId: string; // a reference to ApiUser["id"], so it is a string too
+  submittedAt: string; // an ISO string, never a Date object
+};
+
+// What we SEND when creating one. No id yet -- the server makes it.
+export type NewSubmission = Omit<ApiSubmission, "id">;

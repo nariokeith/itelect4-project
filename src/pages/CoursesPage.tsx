@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type React from "react";
-import { Link, useOutletContext } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router";
 import type { Course } from "../types/index";
 import CourseCard from "../components/CourseCard";
 import usePrevious from "../hooks/usePrevious";
-import { allCourses } from "../data/mockData";
-import type { LayoutContext } from "../components/Layout";
+import useUiStore from "../store/uiStore";
+import { fetchCourses } from "../api/client";
 import {
   chromePanel,
   pageHeading,
@@ -15,32 +16,37 @@ import {
   sectionRule,
 } from "../styles/ui";
 
-function CoursesPage() {
-  const { isCompact } = useOutletContext<LayoutContext>();
+// GONE from this file: the courses/isLoading/isError useState trio, the
+// useEffect + setTimeout that faked a network call, the mockData import, and
+// the "simulate error" button. Four lines of useQuery replaced all of it, and
+// brought caching, retries and background refetching along with them.
 
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
+function CoursesPage() {
+  const { data, isPending, isError, error, refetch } = useQuery<Course[]>({
+    queryKey: ["courses"],
+    queryFn: fetchCourses,
+  });
+
+  // The search box reads and writes the store now, not local state. isCompact
+  // comes from the store too, so this page no longer needs useOutletContext.
+  const searchTerm = useUiStore((state) => state.searchTerm);
+  const setSearchTerm = useUiStore((state) => state.setSearchTerm);
+  const isCompact = useUiStore((state) => state.isCompact);
   const previousSearch = usePrevious(searchTerm);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setCourses(allCourses);
-      setIsLoading(false);
-    }, 500);
-  }, []);
+  // The ref stays: it drives the "focus" button, which is a real feature and
+  // has nothing to do with how the courses are fetched.
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const focusSearch = (): void => {
     searchInputRef.current?.focus();
   };
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isPending) {
       focusSearch();
     }
-  }, [isLoading]);
+  }, [isPending]);
 
   const handleSearchChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -48,13 +54,7 @@ function CoursesPage() {
     setSearchTerm(e.target.value);
   };
 
-  const filteredCourses = courses.filter(
-    (c) =>
-      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (isLoading) {
+  if (isPending) {
     return (
       <div>
         <p className={sectionLabel}>loading records</p>
@@ -86,10 +86,10 @@ function CoursesPage() {
           Courses didn't load
         </h2>
         <p className="mt-1 text-sm text-graphite dark:text-graphite-lift">
-          The request failed before any records arrived.
+          {error.message} &mdash; is json-server running on port 3001?
         </p>
         <button
-          onClick={() => setIsError(false)}
+          onClick={() => void refetch()}
           className="mt-4 rounded-md bg-late px-3 py-1.5 text-sm font-medium text-paper transition hover:bg-late/90 focus-visible:ring-2 focus-visible:ring-late focus-visible:ring-offset-2 focus-visible:ring-offset-paper focus-visible:outline-none dark:focus-visible:ring-offset-ink"
         >
           Retry
@@ -97,6 +97,14 @@ function CoursesPage() {
       </div>
     );
   }
+
+  // Below this line data is Course[], never undefined -- the two returns above
+  // ruled the other cases out, and TypeScript followed.
+  const filteredCourses = data.filter(
+    (c) =>
+      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.code.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
@@ -115,12 +123,6 @@ function CoursesPage() {
         <button onClick={focusSearch} className={`${quietButton} shrink-0`}>
           focus
         </button>
-        <button
-          onClick={() => setIsError(true)}
-          className="shrink-0 rounded-md bg-white/70 px-3 py-1.5 font-mono text-xs text-late ring-1 ring-late/30 backdrop-blur-md transition hover:bg-white focus-visible:ring-2 focus-visible:ring-late focus-visible:ring-offset-2 focus-visible:ring-offset-paper focus-visible:outline-none dark:bg-ink-raise/70 dark:text-late-lift dark:ring-late-lift/30 dark:hover:bg-ink-raise dark:focus-visible:ring-offset-ink"
-        >
-          simulate error
-        </button>
       </div>
       {previousSearch !== undefined && previousSearch !== searchTerm && (
         <p className="mt-2 font-mono text-xs text-graphite dark:text-graphite-lift">
@@ -132,7 +134,7 @@ function CoursesPage() {
         <div className="flex items-baseline gap-3">
           <h3 className={sectionLabel}>Results</h3>
           <span className={sectionCount}>
-            {filteredCourses.length} of {courses.length}
+            {filteredCourses.length} of {data.length}
           </span>
           <span className={sectionRule} aria-hidden="true" />
         </div>

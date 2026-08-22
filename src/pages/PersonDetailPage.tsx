@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router";
-import { allSubmissions, allUsers } from "../data/mockData";
+import type { ApiSubmission, ApiUser } from "../types/index";
+import { fetchSubmissions, fetchUserById } from "../api/client";
 import {
   chromePanel,
   notFoundLabel,
@@ -14,19 +16,44 @@ function PersonDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const personId = Number(id);
-  const person = Number.isInteger(personId)
-    ? allUsers.find((u) => u.id === personId)
-    : undefined;
+  // The id from the URL goes INTO the key, so /people/1 and /people/3 get one
+  // cache entry each. No Number() conversion any more: json-server ids ARE
+  // strings, so the URL segment is already the right shape to send.
+  const {
+    data: person,
+    isPending,
+    isError,
+    error,
+  } = useQuery<ApiUser>({
+    queryKey: ["users", id],
+    queryFn: () => fetchUserById(id!),
+    enabled: id !== undefined,
+  });
 
-  if (person === undefined) {
+  const { data: submissions } = useQuery<ApiSubmission[]>({
+    queryKey: ["submissions"],
+    queryFn: fetchSubmissions,
+  });
+
+  if (isPending) {
+    return (
+      <div>
+        <p className={sectionLabel}>loading record</p>
+        <div className="mt-6 h-48 max-w-lg animate-pulse rounded-2xl border border-rule bg-white shadow-sm motion-reduce:animate-none dark:border-ink-line dark:bg-ink-raise" />
+      </div>
+    );
+  }
+
+  // Session 6 needed a `person === undefined` check for a bad id. Now an
+  // unknown id makes json-server answer 404, fetchUserById throws, and
+  // isError catches it here.
+  if (isError) {
     return (
       <div className={notFoundPanel}>
         <p className={notFoundLabel}>no such record</p>
         <h2 className={`mt-2 ${pageHeading}`}>Person not found</h2>
         <p className="mt-2 text-sm text-graphite dark:text-graphite-lift">
-          No one is filed under the id{" "}
-          <span className="font-mono text-ink dark:text-paper">{id}</span>.
+          {error.message}
         </p>
         <button
           onClick={() => navigate("/people")}
@@ -38,7 +65,9 @@ function PersonDetailPage() {
     );
   }
 
-  const personSubmissions = allSubmissions.filter(
+  // studentId is a string here, matching ApiUser["id"] -- that is exactly why
+  // ApiSubmission redeclares it. Left as a number this === would never match.
+  const personSubmissions = (submissions ?? []).filter(
     (s) => s.studentId === person.id
   );
   const gradedCount = personSubmissions.filter(
