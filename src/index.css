@@ -1,11 +1,28 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Hide the native cursor so ArrowCursor can stand in for it -- everywhere
+   EXCEPT the TanStack devtools panel.
+
+   The panel sits at z-index 99999, above ArrowCursor's 9999, so the arrow is
+   painted behind it. Hiding the native cursor over it as well left no visible
+   pointer at all. The subtree is EXCLUDED from the rule rather than overridden
+   with `cursor: auto`, so the devtools keep their own affordances: pointer on
+   buttons, a text caret in the filter box, resize on the drag handle.
+
+   `.tsqd-parent-container` still needs an explicit reset, because `cursor` is
+   inherited and would otherwise arrive as `none` from <html>.
+
+   Dev-only -- Vite strips the devtools out of `npm run build`. */
 .has-custom-cursor,
-.has-custom-cursor *,
-.has-custom-cursor *::before,
-.has-custom-cursor *::after {
+.has-custom-cursor *:not(.tsqd-parent-container, .tsqd-parent-container *),
+.has-custom-cursor *:not(.tsqd-parent-container, .tsqd-parent-container *)::before,
+.has-custom-cursor *:not(.tsqd-parent-container, .tsqd-parent-container *)::after {
   cursor: none !important;
+}
+
+.has-custom-cursor .tsqd-parent-container {
+  cursor: auto !important;
 }
 
 @theme {

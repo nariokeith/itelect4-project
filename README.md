@@ -49,16 +49,105 @@ density control and the `<Outlet />` each page renders into. `ProtectedRoute` is
 layout route: it guards what it wraps without adding a segment to the URL.
 
 Auth is a typed Zustand store (`src/store/authStore.ts`) holding `token`, `userName`,
-`login` and `logout`. It is in-memory only, so a full page reload signs you out.
+`login` and `logout`. Since GT3 Part 2 it is wrapped in `persist`, so a reload keeps
+you signed in.
+
+## State and Data Fetching (GT3 Part 2)
+
+### Two stores, split by question
+
+| Store | Answers | localStorage key | What `partialize` saves |
+|---|---|---|---|
+| `src/store/authStore.ts` | "who is logged in" | `itelect4-auth` | `token`, `userName` |
+| `src/store/uiStore.ts` | "how does the app look" | `itelect4-ui` | `isDarkMode`, `isCompact` |
+
+`uiStore` also holds `searchTerm`, which is deliberately **not** persisted — a search box
+still full of last week's text after a reload would only confuse people. Dark mode and the
+density pill moved out of `Layout` into the store, which is why `LayoutContext` and the
+`useOutletContext` call in `CoursesPage` are gone. `useToggle` survives: `DashboardPage`
+still uses it for `showDetails`.
+
+Values that only one component reads stay in `useState` — the repo-URL box and the course
+`<select>` on the Submissions page never leave that page.
+
+### The API
+
+`db.json` in the project **root** (not `src/`) is served by json-server. It is committed
+to git — the app has nothing to show without it.
+
+```bash
+npm run api    # terminal 1 -- http://localhost:3001, must stay running
+npm run dev    # terminal 2 -- http://localhost:5173
+```
+
+Three collections: `/courses`, `/submissions`, `/users`.
+
+`src/api/client.ts` owns **every** `fetch` in the app. No component calls `fetch` directly,
+so swapping `API_URL` for a real backend later is a one-line change. Each function checks
+`res.ok` itself, because `fetch` does not throw on a 404.
+
+### API types
+
+json-server rewrites every `id` as a string, and JSON has no `Date`. The shapes on the wire
+are therefore not the ones declared in Sessions 1–2, so `src/types/index.ts` derives them
+with `Omit` rather than duplicating them:
+
+```ts
+type ApiUser       = Omit<User, "id"> & { id: string };
+type ApiSubmission = Omit<Submission, "id" | "studentId" | "submittedAt">
+                     & { id: string; studentId: string; submittedAt: string };
+type NewSubmission = Omit<ApiSubmission, "id">;
+```
+
+`studentId` is redeclared as a string so it still matches `ApiUser["id"]` — left as a
+number, that `===` would silently never match. `SubmissionBadge` and `UserCard` take the
+`Api*` types, and the badge parses `submittedAt` with `new Date(...)` before formatting it,
+because it is a string over the wire.
+
+### Queries and the mutation
+
+One `QueryClient` is created in `src/main.tsx`, outside the component tree.
+
+| Page | Query keys |
+|---|---|
+| `CoursesPage` | `["courses"]` |
+| `CourseDetailPage` | `["courses", code]` (from the URL) + `["submissions"]` |
+| `PeoplePage` | `["users"]` |
+| `PersonDetailPage` | `["users", id]` (from the URL) + `["submissions"]` |
+| `DashboardPage` | `["courses"]`, `["submissions"]`, `["users"]` |
+| `SubmissionsPage` | `["submissions"]`, `["users"]`, `["courses"]` |
+
+Pages sharing a key share one cache entry and one request. The detail pages put the URL
+value **into** the key, so `/courses/CS101` and `/courses/ITELECT4` get an entry each
+instead of overwriting one another.
+
+`SubmissionsPage` holds the one `useMutation`: it POSTs through `createSubmission` and
+calls `invalidateQueries({ queryKey: ["submissions"] })` in `onSuccess`, so the list
+refreshes itself without a manual refetch and without a page reload.
+
+`src/data/mockData.ts` is **deleted** — every page that used it now fetches instead.
+
+### One local gotcha
+
+`vite.config.ts` tells Vite's watcher to ignore `db.json`. Every POST makes json-server
+rewrite that file, and without the ignore Vite would see the change and full-reload the
+page — which wipes the form and hides whether `invalidateQueries` actually did anything.
 
 ## How to Install and Run
 
 ```bash
 npm install
-npm run dev
 ```
 
-Then open the printed local URL (http://localhost:5173) in your browser.
+This app needs **two terminals**, and both must stay running:
+
+```bash
+npm run api    # terminal 1 -- the API on http://localhost:3001
+npm run dev    # terminal 2 -- the app on http://localhost:5173
+```
+
+Then open http://localhost:5173 in your browser. Without `npm run api`, every page that
+loads data shows its red "is json-server running on port 3001?" panel.
 
 To type-check and build for production:
 

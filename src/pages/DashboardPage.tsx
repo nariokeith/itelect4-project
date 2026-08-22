@@ -1,7 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
-import type { RoleCount } from "../types/index";
+import type { ApiSubmission, ApiUser, Course, RoleCount } from "../types/index";
 import useToggle from "../hooks/useToggle";
-import { allCourses, allSubmissions, allUsers } from "../data/mockData";
+import { fetchCourses, fetchSubmissions, fetchUsers } from "../api/client";
 import {
   chromePanel,
   pageHeading,
@@ -16,13 +17,70 @@ const plural = (count: number, word: string): string =>
 
 const emptyTally: RoleCount = { student: 0, admin: 0, instructor: 0 };
 
-const roleTally: RoleCount = allUsers.reduce<RoleCount>(
-  (tally, user) => ({ ...tally, [user.role]: tally[user.role] + 1 }),
-  emptyTally
-);
+const tallyRoles = (users: ApiUser[]): RoleCount =>
+  users.reduce<RoleCount>(
+    (tally, user) => ({ ...tally, [user.role]: tally[user.role] + 1 }),
+    emptyTally
+  );
 
 function DashboardPage() {
+  // useToggle is NOT deleted -- this is the one place still using it.
   const [showDetails, toggleDetails] = useToggle(false);
+
+  // Three reads, three cache entries, all shared with the pages that own them.
+  // Arriving here from /courses reuses ["courses"] with no second request.
+  const courses = useQuery<Course[]>({
+    queryKey: ["courses"],
+    queryFn: fetchCourses,
+  });
+  const submissions = useQuery<ApiSubmission[]>({
+    queryKey: ["submissions"],
+    queryFn: fetchSubmissions,
+  });
+  const users = useQuery<ApiUser[]>({
+    queryKey: ["users"],
+    queryFn: fetchUsers,
+  });
+
+  const isPending =
+    courses.isPending || submissions.isPending || users.isPending;
+  const isError = courses.isError || submissions.isError || users.isError;
+
+  if (isPending) {
+    return (
+      <div>
+        <p className={sectionLabel}>loading overview</p>
+        <div className="mt-6 h-44 animate-pulse rounded-2xl border border-rule bg-white shadow-sm motion-reduce:animate-none dark:border-ink-line dark:bg-ink-raise" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div
+        className={`rounded-2xl p-6 ring-late/25 dark:ring-late-lift/25 ${chromePanel}`}
+      >
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-late dark:text-late-lift">
+          request failed
+        </p>
+        <h2 className="mt-2 text-lg font-semibold text-ink dark:text-paper">
+          The overview didn't load
+        </h2>
+        <p className="mt-1 text-sm text-graphite dark:text-graphite-lift">
+          Is json-server running on port 3001?
+        </p>
+      </div>
+    );
+  }
+
+  // Past the two returns above, all three .data are defined.
+  const allCourses = courses.data;
+  const allSubmissions = submissions.data;
+  const allUsers = users.data;
+
+  // This was a module-level const while the data was a static import. It has
+  // to be computed per render now, because the data arrives after the module.
+  const roleTally = tallyRoles(allUsers);
 
   const gradedCount = allSubmissions.filter(
     (s) => s.score !== undefined

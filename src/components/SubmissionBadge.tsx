@@ -1,9 +1,9 @@
 import type React from "react";
-import type { Submission } from "../types/index";
+import type { ApiSubmission } from "../types/index";  // was Submission
 
 interface SubmissionBadgeProps {
-  submission: Submission;
-  children?: React.ReactNode;
+  submission: ApiSubmission;      // <-- was Submission
+  children?: React.ReactNode;     // UNCHANGED
 }
 
 const SubmissionBadge: React.FC<SubmissionBadgeProps> = ({
@@ -32,7 +32,11 @@ const SubmissionBadge: React.FC<SubmissionBadgeProps> = ({
           </p>
 
           <p className="mt-2 text-xs text-paper/80 dark:text-ink/80">
-            submitted {submission.submittedAt.toLocaleDateString()}
+            {/* submittedAt is an ISO STRING over the wire, not a Date.
+                Calling .toLocaleDateString() on it directly is a runtime
+                TypeError, so it gets parsed back into a Date first. */}
+            submitted{" "}
+            {new Date(submission.submittedAt).toLocaleDateString()}
           </p>
 
           {children}

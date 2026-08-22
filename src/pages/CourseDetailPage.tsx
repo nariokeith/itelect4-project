@@ -1,6 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
+import type { ApiSubmission, Course } from "../types/index";
 import CourseCard from "../components/CourseCard";
-import { allCourses, allSubmissions } from "../data/mockData";
+import { fetchCourseByCode, fetchSubmissions } from "../api/client";
 import {
   chromePanel,
   notFoundLabel,
@@ -15,16 +17,50 @@ function CourseDetailPage() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
 
-  const course = allCourses.find((c) => c.code === code);
+  // GONE: const course = allCourses.find((c) => c.code === code);
+  //
+  // The code from the URL goes INTO the key, so /courses/CSSWENG and
+  // /courses/ITELECT4 get one cache entry each instead of sharing one. Leave
+  // `code` out and every course would quietly overwrite the last one.
+  const {
+    data: course,
+    isPending,
+    isError,
+    error,
+  } = useQuery<Course>({
+    queryKey: ["courses", code],
+    // An arrow function, because we need to pass an argument. Writing
+    // queryFn: fetchCourseByCode would hand Query the function with no code
+    // to give it. The ! is safe only because `enabled` is right below.
+    queryFn: () => fetchCourseByCode(code!),
+    enabled: code !== undefined,
+  });
 
-  if (course === undefined) {
+  // The same ["submissions"] entry SubmissionsPage uses. Two components, one
+  // cache entry, one request -- not two.
+  const { data: submissions } = useQuery<ApiSubmission[]>({
+    queryKey: ["submissions"],
+    queryFn: fetchSubmissions,
+  });
+
+  if (isPending) {
+    return (
+      <div>
+        <p className={sectionLabel}>loading record</p>
+        <div className="mt-6 h-40 max-w-sm animate-pulse rounded-2xl border border-rule bg-white shadow-sm motion-reduce:animate-none dark:border-ink-line dark:bg-ink-raise" />
+      </div>
+    );
+  }
+
+  // REPLACES Session 6's `if (course === undefined)` block: a bad code makes
+  // fetchCourseByCode throw, and the throw lands here instead.
+  if (isError) {
     return (
       <div className={notFoundPanel}>
         <p className={notFoundLabel}>no such record</p>
         <h2 className={`mt-2 ${pageHeading}`}>Course not found</h2>
         <p className="mt-2 text-sm text-graphite dark:text-graphite-lift">
-          No course is filed under the code{" "}
-          <span className="font-mono text-ink dark:text-paper">{code}</span>.
+          {error.message}
         </p>
         <button
           onClick={() => navigate("/courses")}
@@ -36,7 +72,9 @@ function CourseDetailPage() {
     );
   }
 
-  const courseSubmissions = allSubmissions.filter(
+  // submissions is undefined until its own query settles, so the counts show
+  // zero for a moment rather than crashing.
+  const courseSubmissions = (submissions ?? []).filter(
     (s) => s.courseCode === course.code
   );
   const gradedCount = courseSubmissions.filter(

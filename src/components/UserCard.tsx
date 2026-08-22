@@ -1,10 +1,14 @@
 import type React from "react";
 import useMiniTilt from "../hooks/useMiniTilt";
-import type { User } from "../types/index";
+import type { ApiUser } from "../types/index";  // was User
 
+// The people on this card came out of an HTTP response, so the prop type says
+// so. Left as User it would describe an id that is really a string -- wrong,
+// and completely silent. Every field the body reads (name, role, email,
+// isActive) survived the Omit, so nothing inside the component changes.
 interface UserCardProps {
-  user: User;
-  onSelect: (user: User) => void;
+  user: ApiUser;                       // <-- was User
+  onSelect: (user: ApiUser) => void;   // <-- was User
 }
 
 const cardFace =
