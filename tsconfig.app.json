@@ -15,6 +15,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    // The same alias as tsconfig.json. TypeScript reads `paths` to type-check
+    // the import; Vite reads `resolve.alias` to actually find the file. Two
+    // tools, two settings, and neither one reads the other's.
+    "paths": { "@/*": ["./src/*"] },
+
     "strict": true,
 
     "noFallthroughCasesInSwitch": true
