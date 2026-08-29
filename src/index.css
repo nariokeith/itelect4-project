@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Hide the native cursor so ArrowCursor can stand in for it -- everywhere
@@ -75,4 +77,167 @@
     0 10px 18px -6px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     inset 0 -2px 4px rgba(22, 22, 26, 0.25);
+}
+
+@theme inline {
+  /* Written by `npx shadcn@latest init`, then edited. The preset shipped
+     `--font-sans: 'Geist Variable'` here, which sat AFTER our own @theme and
+     so quietly replaced IBM Plex Sans everywhere -- Layout's `font-sans` and
+     the `html { @apply font-sans }` rule at the bottom of this file both read
+     it. That line is gone; --font-sans stays whatever our @theme says, and
+     --font-heading points at our display face instead of Geist. */
+  --font-heading: var(--font-display);
+
+  /* `inline` means "resolve these now": each line turns a raw value below
+     into a Tailwind class name. --color-border is the reason `border-border`
+     exists at all, and --color-foreground is what makes `text-foreground`
+     a real class in both themes. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* The values themselves. The preset shipped a neutral oklch greyscale here;
+   every one of them has been repointed at a colour this project already had,
+   so <Button>, <Input> and <Label> come out looking like the rest of the app
+   instead of like stock shadcn. The @theme block further up is still the
+   single place those colours are defined -- these are references to it. */
+:root {
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+
+  --card: var(--color-paper);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-paper);
+  --popover-foreground: var(--color-ink);
+
+  /* The Session 5 button, as a variable: bg-ink + text-paper. */
+  --primary: var(--color-ink);
+  --primary-foreground: var(--color-paper);
+
+  --secondary: #f0efec;
+  --secondary-foreground: var(--color-ink);
+  --muted: #f0efec;
+  --muted-foreground: var(--color-graphite);
+  --accent: #f0efec;
+  --accent-foreground: var(--color-ink);
+
+  --destructive: var(--color-late);
+
+  --border: var(--color-rule);
+  --input: var(--color-rule);
+  --ring: var(--color-ink);
+
+  /* Nothing installed reads these yet. They are left as the preset's
+     greyscale ramp so `shadcn add chart` still works later. */
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
+  --sidebar: var(--color-paper);
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-primary: var(--color-ink);
+  --sidebar-primary-foreground: var(--color-paper);
+  --sidebar-accent: #f0efec;
+  --sidebar-accent-foreground: var(--color-ink);
+  --sidebar-border: var(--color-rule);
+  --sidebar-ring: var(--color-ink);
+
+  /* shadcn's <Button> and <Input> are `rounded-lg`, which resolves to this.
+     0.375rem is Tailwind's `rounded-md` -- the radius every hand-styled
+     control in this app already uses. */
+  --radius: 0.375rem;
+}
+
+/* The SAME names, new values. One `.dark` class on Layout's wrapper div
+   switches both styling systems at once -- which is why <Label> needs
+   `text-foreground` and no `dark:` partner. */
+.dark {
+  --background: var(--color-ink);
+  --foreground: var(--color-paper);
+
+  --card: var(--color-ink-raise);
+  --card-foreground: var(--color-paper);
+  --popover: var(--color-ink-raise);
+  --popover-foreground: var(--color-paper);
+
+  --primary: var(--color-paper);
+  --primary-foreground: var(--color-ink);
+
+  --secondary: var(--color-ink-raise);
+  --secondary-foreground: var(--color-paper);
+  --muted: var(--color-ink-raise);
+  --muted-foreground: var(--color-graphite-lift);
+  --accent: var(--color-ink-raise);
+  --accent-foreground: var(--color-paper);
+
+  --destructive: var(--color-late-lift);
+
+  --border: var(--color-ink-line);
+  --input: var(--color-ink-line);
+  --ring: var(--color-paper);
+
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
+  --sidebar: var(--color-ink-raise);
+  --sidebar-foreground: var(--color-paper);
+  --sidebar-primary: var(--color-paper);
+  --sidebar-primary-foreground: var(--color-ink);
+  --sidebar-accent: var(--color-ink-raise);
+  --sidebar-accent-foreground: var(--color-paper);
+  --sidebar-border: var(--color-ink-line);
+  --sidebar-ring: var(--color-paper);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

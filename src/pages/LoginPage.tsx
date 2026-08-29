@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { pageHeading, sectionLabel } from "../styles/ui";
 
+// The second page using Button, Input and Label -- and it keeps useState on
+// purpose. One field with one rule ("not empty") does not need a schema, a
+// resolver or useForm. The UI components and the form library are independent:
+// either one works without the other, and knowing when to stop is the point.
 function LoginPage() {
   const [name, setName] = useState<string>("");
 
@@ -11,7 +18,7 @@ function LoginPage() {
 
   const handleLogin = (): void => {
     login(name);
-    navigate("/submissions");
+    void navigate("/submissions");
   };
 
   return (
@@ -22,21 +29,24 @@ function LoginPage() {
         Any name works. Logging in unlocks the Submissions page.
       </p>
 
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Your name"
-        className="mt-5 w-full rounded-md bg-white/70 px-3 py-2 font-mono text-sm text-ink ring-1 ring-rule backdrop-blur-md transition placeholder:text-graphite/80 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none dark:bg-ink-raise/70 dark:text-paper dark:ring-ink-line dark:placeholder:text-graphite-lift/80 dark:focus:bg-ink-raise dark:focus:ring-paper"
-      />
+      <div className="mt-5 grid gap-1.5">
+        <Label htmlFor="name" className="text-foreground">
+          Your name
+        </Label>
+        <Input
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Juan dela Cruz"
+          className="font-mono"
+        />
+      </div>
 
-      <button
-        onClick={handleLogin}
-        disabled={name === ""}
-        className="mt-3 rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-paper transition hover:bg-ink/85 focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper focus-visible:outline-none disabled:bg-graphite/40 disabled:text-graphite dark:bg-paper dark:text-ink dark:hover:bg-paper/85 dark:focus-visible:ring-paper dark:focus-visible:ring-offset-ink dark:disabled:bg-graphite-lift/30 dark:disabled:text-graphite-lift"
-      >
+      {/* Disabling on empty is fine HERE: there is no error message this
+          would hide, and no blur-then-click to get in the way. */}
+      <Button onClick={handleLogin} disabled={name === ""} className="mt-3">
         Log In
-      </button>
+      </Button>
     </div>
   );
 }

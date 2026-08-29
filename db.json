@@ -27,7 +27,7 @@
       "id": "1",
       "studentId": "1",
       "courseCode": "ITELECT4",
-      "repoUrl": "github.com/juandc/itelect4-project",
+      "repoUrl": "https://github.com/juandc/itelect4-project",
       "submittedAt": "2026-08-08T09:00:00.000Z",
       "score": 95
     },
@@ -35,14 +35,14 @@
       "id": "2",
       "studentId": "1",
       "courseCode": "ITELECT3",
-      "repoUrl": "github.com/juandc/itelect3-final",
+      "repoUrl": "https://github.com/juandc/itelect3-final",
       "submittedAt": "2026-08-12T09:00:00.000Z"
     },
     {
       "id": "3",
       "studentId": "3",
       "courseCode": "ITELECT4",
-      "repoUrl": "github.com/areyes/itelect4-tracker",
+      "repoUrl": "https://github.com/areyes/itelect4-tracker",
       "submittedAt": "2026-08-09T09:00:00.000Z",
       "score": 88
     },
@@ -50,14 +50,14 @@
       "id": "4",
       "studentId": "4",
       "courseCode": "CS101",
-      "repoUrl": "github.com/pmendoza/cs101-exercises",
+      "repoUrl": "https://github.com/pmendoza/cs101-exercises",
       "submittedAt": "2026-07-30T09:00:00.000Z"
     },
     {
       "id": "5",
       "studentId": "3",
       "courseCode": "CS101",
-      "repoUrl": "github.com/areyes/cs101-machine-problem",
+      "repoUrl": "https://github.com/areyes/cs101-machine-problem",
       "submittedAt": "2026-07-28T09:00:00.000Z",
       "score": 79
     }

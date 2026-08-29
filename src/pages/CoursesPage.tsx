@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import type { Course } from "../types/index";
 import CourseCard from "../components/CourseCard";
+import { Input } from "@/components/ui/input";
 import usePrevious from "../hooks/usePrevious";
 import useUiStore from "../store/uiStore";
 import { fetchCourses } from "../api/client";
@@ -112,13 +113,17 @@ function CoursesPage() {
       <h2 className={`mt-2 ${pageHeading}`}>Courses</h2>
 
       <div className="mt-6 flex gap-2">
-        <input
+        {/* A third page on the shadcn <Input>. Every hand-written class the
+            old <input> carried now lives in src/components/ui/input.tsx, and
+            the ref still works -- in React 19 ref is an ordinary prop, so it
+            travels through {...props} to the real DOM node. */}
+        <Input
           ref={searchInputRef}
           type="text"
           value={searchTerm}
           placeholder="Search courses..."
           onChange={handleSearchChange}
-          className="w-full rounded-md bg-white/70 px-3 py-2 font-mono text-sm text-ink ring-1 ring-rule backdrop-blur-md transition placeholder:text-graphite/80 focus:bg-white focus:ring-2 focus:ring-ink focus:outline-none dark:bg-ink-raise/70 dark:text-paper dark:ring-ink-line dark:placeholder:text-graphite-lift/80 dark:focus:bg-ink-raise dark:focus:ring-paper"
+          className="font-mono"
         />
         <button onClick={focusSearch} className={`${quietButton} shrink-0`}>
           focus

@@ -3,5 +3,13 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    // "@/..." means "src/...". No `baseUrl` beside it: the official shadcn
+    // Vite guide still tells you to write one, and TypeScript 6 answers
+    // `error TS5101: Option 'baseUrl' is deprecated` -- at `npm run build`
+    // only, never at `npm run dev`. `paths` resolves relative to this file
+    // on its own, which is what we wanted anyway.
+    "paths": { "@/*": ["./src/*"] }
+  }
 }
