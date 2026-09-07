@@ -14,11 +14,29 @@ function ArrowCursor() {
 
   if (!isEnabled) return null;
 
+  // No colour class here on purpose. The arrow's `color` is written inline
+  // every ~40ms by useArrowCursor, which samples what is actually painted
+  // under the pointer and picks pure black or pure white -- whichever WCAG
+  // scores as the more readable of the two against that backdrop.
+  //
+  // It used to be `text-ink dark:text-paper`: the theme's own foreground,
+  // which meant every surface already wearing that exact colour swallowed it
+  // -- the `bg-ink` active nav link and the sliding density pill in light
+  // mode, their `dark:bg-paper` mirrors in dark mode, and any shadcn
+  // `bg-primary` button (--primary IS --color-ink).
+  //
+  // CSS difference blending was tried in between and rejected. It inverts
+  // each channel independently, so it inverts HUE as well as lightness: over
+  // graphite the arrow came out a pale tan, over the red `late` tokens a
+  // cyan. Two arbitrary colours per surface instead of two fixed ones -- it
+  // read as translucent rather than as a cursor. (Naming the Tailwind class
+  // here would also be enough to make Tailwind emit the unused rule, since
+  // v4 scans comments as candidate text.)
   return (
     <div
       ref={cursorRef}
       aria-hidden="true"
-      className="pointer-events-none fixed top-0 left-0 z-[9999] -mt-3 -ml-[18px] h-6 w-9 text-ink opacity-0 transition-opacity duration-200 will-change-transform dark:text-paper"
+      className="pointer-events-none fixed top-0 left-0 z-[9999] -mt-3 -ml-[18px] h-6 w-9 opacity-0 transition-opacity duration-200 will-change-transform"
     >
       <div
         data-arrow
