@@ -1,79 +1,113 @@
 import type {
   ApiSubmission,
   ApiUser,
+  AuthReply,
   Course,
   NewSubmission,
 } from "../types/index";
+import useAuthStore from "../store/authStore";
 
-// One place, one line to change when Session 9 swaps this for a real backend.
-export const API_URL = "http://localhost:3001";
+// Vite only exposes variables that start with VITE_, and it replaces this at
+// BUILD time -- whatever was in .env (or in Vercel's settings) when
+// `npm run build` ran is baked into the bundle. Changing it in Vercel means
+// nothing until the next deploy.
+export const API_URL = import.meta.env.VITE_API_URL;
 
-// fetch only rejects when the request never happened at all -- a 404 is a
-// perfectly successful request that returned a 404. So every function below
-// checks res.ok for itself.
+// A sentence now beats every call quietly going to "undefined/api/courses".
+if (!API_URL) {
+  throw new Error(
+    "VITE_API_URL is missing. Copy .env.example to .env, fill it in, " +
+      "and restart npm run dev."
+  );
+}
 
-// GET /courses  ->  the whole list
-export async function fetchCourses(): Promise<Course[]> {
-  const res = await fetch(`${API_URL}/courses`);
+// Every call goes through here: the host, the JSON header, the token when
+// there is one, and the API's own message when it refuses.
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  // getState(), not the hook -- this is not a component. It only needs the
+  // token as it is at the moment of the call.
+  const token = useAuthStore.getState().token;
+
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      // The exact header requireAuth reads. No token means no header at all,
+      // which is what the public course routes want.
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init.headers,
+    },
+  });
+
   if (!res.ok) {
-    throw new Error("Could not load courses");
+    // A token the API no longer accepts -- expired after two hours, or a
+    // leftover demo-token from before this API existed. Persist would keep
+    // handing it back forever, so drop it and the app is simply logged out.
+    if (res.status === 401 && token) {
+      useAuthStore.getState().logout();
+    }
+
+    // Every refusal this API sends has a message field. Reading it is the
+    // difference between "Request failed" and "repoUrl must start with
+    // https://github.com/owner/repo".
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? `Request failed (${res.status})`);
   }
+
+  // 204 No Content has no body to parse.
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
   return res.json();
 }
 
-// GET /courses?code=ITELECT4  ->  an ARRAY of matches, not one course.
-// Turning that list into a single course belongs here, not in the page.
-export async function fetchCourseByCode(code: string): Promise<Course> {
-  const res = await fetch(`${API_URL}/courses?code=${code}`);
-  if (!res.ok) {
-    throw new Error("Could not load that course");
-  }
-  const matches: Course[] = await res.json();
-  if (matches.length === 0) {
-    throw new Error(`No course is filed under the code "${code}".`);
-  }
-  return matches[0];
+// ---- courses: public. request() sends no token, and none is needed.
+
+export function fetchCourses(): Promise<Course[]> {
+  return request<Course[]>("/api/courses");
 }
 
-// GET /users  ->  the whole directory
-export async function fetchUsers(): Promise<ApiUser[]> {
-  const res = await fetch(`${API_URL}/users`);
-  if (!res.ok) {
-    throw new Error("Could not load people");
-  }
-  return res.json();
+// One course by code. A bad code answers 404 and request() throws the
+// sentence the API sent -- no array to unwrap any more.
+export function fetchCourseByCode(code: string): Promise<Course> {
+  return request<Course>(`/api/courses/${encodeURIComponent(code)}`);
 }
 
-// GET /users/3  ->  one person. json-server answers 404 for an unknown id,
-// which res.ok turns into the throw the page renders as "not found".
-export async function fetchUserById(id: string): Promise<ApiUser> {
-  const res = await fetch(`${API_URL}/users/${id}`);
-  if (!res.ok) {
-    throw new Error(`No one is filed under the id "${id}".`);
-  }
-  return res.json();
+// ---- submissions: private. The token goes on automatically.
+
+export function fetchSubmissions(): Promise<ApiSubmission[]> {
+  return request<ApiSubmission[]>("/api/submissions");
 }
 
-// GET /submissions
-export async function fetchSubmissions(): Promise<ApiSubmission[]> {
-  const res = await fetch(`${API_URL}/submissions`);
-  if (!res.ok) {
-    throw new Error("Could not load submissions");
-  }
-  return res.json();
-}
-
-// POST /submissions  ->  the row the server saved, with the id it made
-export async function createSubmission(
+export function createSubmission(
   newSubmission: NewSubmission
 ): Promise<ApiSubmission> {
-  const res = await fetch(`${API_URL}/submissions`, {
+  return request<ApiSubmission>("/api/submissions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newSubmission),
   });
-  if (!res.ok) {
-    throw new Error("Could not save the submission");
-  }
-  return res.json();
+}
+
+// ---- auth: the two routes that make a session exist
+
+export function registerUser(body: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<ApiUser> {
+  return request<ApiUser>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function loginUser(body: {
+  email: string;
+  password: string;
+}): Promise<AuthReply> {
+  return request<AuthReply>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }

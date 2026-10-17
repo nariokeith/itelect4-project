@@ -91,27 +91,34 @@ export const enum Role {
   Instructor = "instructor",
 }
 
-// ---------------------------------------------------------------- SESSION 7
-// The shapes the API actually returns, which are NOT the ones declared above.
-// JSON has no Date, and json-server rewrites every `id` as a string -- even
-// when db.json spells it as a number. Both types below are DERIVED from the
-// originals, so User and Submission stay the single source of truth: add a
-// field there and these inherit it.
+// ---------------------------------------------------------------- SESSION 10
+// The shapes itelect4-backend actually returns, which are NOT the ones
+// declared above. JSON has no Date, and MongoDB ids are 24 hex characters.
+// Both types below are DERIVED from the originals, so User and Submission
+// stay the single source of truth: add a field there and these inherit it.
 
-// Omit is from Session 2. The & intersection is from Session 1.
-
+// What /api/auth/register sends back, and what sits inside the login reply.
 export type ApiUser = Omit<User, "id"> & {
-  id: string; // json-server hands back "3", never 3
+  id: string; // 24 hex characters, from MongoDB's _id
 };
 
 export type ApiSubmission = Omit<
   Submission,
   "id" | "studentId" | "submittedAt"
 > & {
-  id: string; // json-server ids look like "z4U3v8og06g"
-  studentId: string; // a reference to ApiUser["id"], so it is a string too
+  id: string; // 24 hex characters, from MongoDB's _id
+  studentId: string; // the owner's _id, also 24 hex characters
   submittedAt: string; // an ISO string, never a Date object
 };
 
-// What we SEND when creating one. No id yet -- the server makes it.
-export type NewSubmission = Omit<ApiSubmission, "id">;
+// What we SEND when creating one. The server fills in studentId from the
+// token and submittedAt from the schema default, so these two fields are the
+// whole request body.
+export type NewSubmission = Pick<Submission, "courseCode" | "repoUrl">;
+
+// What /api/auth/login sends back. The token goes in the Authorization
+// header on every request after this one.
+export interface AuthReply {
+  token: string;
+  user: ApiUser;
+}
