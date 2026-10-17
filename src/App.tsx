@@ -5,6 +5,7 @@ import DashboardPage from "./pages/DashboardPage";
 import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import SubmissionsPage from "./pages/SubmissionsPage";
+import ReviewPage from "./pages/ReviewPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -24,6 +25,9 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="submissions" element={<SubmissionsPage />} />
+          {/* Behind the same guard: the API refuses it without a token
+              anyway, so the page should not offer it. */}
+          <Route path="review" element={<ReviewPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
