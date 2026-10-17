@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import type { ApiSubmission, Course } from "../types/index";
 import CourseCard from "../components/CourseCard";
+import useAuthStore from "../store/authStore";
 import { fetchCourseByCode, fetchSubmissions } from "../api/client";
 import {
   chromePanel,
@@ -16,6 +17,7 @@ import {
 function CourseDetailPage() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const token = useAuthStore((state) => state.token);
 
   // GONE: const course = allCourses.find((c) => c.code === code);
   //
@@ -36,11 +38,13 @@ function CourseDetailPage() {
     enabled: code !== undefined,
   });
 
-  // The same ["submissions"] entry SubmissionsPage uses. Two components, one
-  // cache entry, one request -- not two.
+  // The same ["submissions", token] entry SubmissionsPage uses. Two components, one
+  // cache entry, one request -- not two. Submissions are private now, so a
+  // visitor who has not logged in does not ask for them and get a 401.
   const { data: submissions } = useQuery<ApiSubmission[]>({
-    queryKey: ["submissions"],
+    queryKey: ["submissions", token],
     queryFn: fetchSubmissions,
+    enabled: token !== null,
   });
 
   if (isPending) {
@@ -105,13 +109,21 @@ function CourseDetailPage() {
             <dd className={sectionCount}>{course.semester}</dd>
           </div>
           <div className="mt-3 flex items-baseline justify-between gap-4 border-t border-rule pt-3 dark:border-ink-line">
-            <dt className={sectionLabel}>submissions</dt>
+            <dt className={sectionLabel}>your submissions</dt>
             <dd className={sectionCount}>
-              {courseSubmissions.length}
-              <span className="text-graphite dark:text-graphite-lift">
-                {" "}
-                · {gradedCount} graded
-              </span>
+              {token === null ? (
+                <span className="text-graphite dark:text-graphite-lift">
+                  log in to see
+                </span>
+              ) : (
+                <>
+                  {courseSubmissions.length}
+                  <span className="text-graphite dark:text-graphite-lift">
+                    {" "}
+                    · {gradedCount} graded
+                  </span>
+                </>
+              )}
             </dd>
           </div>
         </dl>

@@ -7,7 +7,7 @@ import CourseCard from "../components/CourseCard";
 import { Input } from "@/components/ui/input";
 import usePrevious from "../hooks/usePrevious";
 import useUiStore from "../store/uiStore";
-import { fetchCourses } from "../api/client";
+import { API_URL, fetchCourses } from "../api/client";
 import {
   chromePanel,
   pageHeading,
@@ -87,7 +87,7 @@ function CoursesPage() {
           Courses didn't load
         </h2>
         <p className="mt-1 text-sm text-graphite dark:text-graphite-lift">
-          {error.message} &mdash; is json-server running on port 3001?
+          {error.message} &mdash; tried {API_URL}/api/courses
         </p>
         <button
           onClick={() => void refetch()}
