@@ -38,10 +38,12 @@ to see what pages exist, read that one file.
 | `/` | `DashboardPage` | index route |
 | `/courses` | `CoursesPage` | search + grid, each card links to its detail page |
 | `/courses/:code` | `CourseDetailPage` | URL parameter, `useParams<{ code: string }>()` |
-| `/people` | `PeoplePage` | selecting a person navigates with `useNavigate()` |
-| `/people/:id` | `PersonDetailPage` | numeric URL parameter, converted and validated |
 | `/submissions` | `SubmissionsPage` | **protected** — redirects to `/login` without a token |
-| `/login` | `LoginPage` | sets the token, then navigates away |
+| `/login` | `LoginPage` | email + password, checked by the API (GT4 Part 2) |
+| `/register` | `RegisterPage` | creates the account, then logs in (GT4 Part 2) |
+
+`/people` and `/people/:id` were removed in GT4 Part 2: they read json-server's `/users`,
+and the real API has no public list of users.
 | `*` | `NotFoundPage` | catch-all, so no URL renders blank |
 
 Every route is nested inside `Layout`, which owns the nav bar, the dark mode toggle, the
@@ -49,8 +51,8 @@ density control and the `<Outlet />` each page renders into. `ProtectedRoute` is
 layout route: it guards what it wraps without adding a segment to the URL.
 
 Auth is a typed Zustand store (`src/store/authStore.ts`) holding `token`, `userName`,
-`login` and `logout`. Since GT3 Part 2 it is wrapped in `persist`, so a reload keeps
-you signed in.
+`setSession` and `logout`. Since GT3 Part 2 it is wrapped in `persist`, so a reload keeps
+you signed in. Since GT4 Part 2 the token is a real JWT issued by the API.
 
 ## State and Data Fetching (GT3 Part 2)
 
@@ -73,6 +75,8 @@ the principle is the same: they never leave that page, so they never belonged in
 `LoginPage` still uses `useState`, deliberately.
 
 ### The API
+
+> Replaced in GT4 Part 2 — json-server and `db.json` are gone. See below.
 
 `db.json` in the project **root** (not `src/`) is served by json-server. It is committed
 to git — the app has nothing to show without it.
@@ -284,21 +288,48 @@ The five seeded `repoUrl`s in `db.json` were bare `github.com/...` strings — v
 form itself would now refuse to create. All five gained `https://`, so the list no longer
 renders rows that fail the rules it is read by.
 
+## Full Stack and Deployment (GT4 Part 2)
+
+The app now reads and writes through
+[itelect4-backend](https://github.com/nariokeith/itelect4-backend), an Express + MongoDB
+API. Both are deployed on Vercel:
+
+| | URL |
+|---|---|
+| Frontend | https://itelect4-project-eta.vercel.app |
+| Backend | https://itelect4-backend-zeta.vercel.app |
+
+- **One `request()` helper** in `src/api/client.ts` holds the host (`VITE_API_URL`), the
+  JSON header, the `Authorization: Bearer <token>` header whenever a token exists, and the
+  API's own error message on failure. A 401 while holding a token logs the user out, so an
+  expired or leftover token cannot get stuck.
+- **Courses are public** (`GET /api/courses`, `GET /api/courses/:code`); **submissions are
+  private** and belong to the logged-in account. Their query key includes the token, so one
+  account never sees another's cached rows.
+- **The derived types match the API**: `NewSubmission` is just `courseCode` + `repoUrl`. The
+  server sets `studentId` from the token and `submittedAt` from its schema default.
+- **Login and register** use React Hook Form + Zod (`src/schemas/authSchema.ts`). Register
+  calls `/api/auth/register` then `/api/auth/login`, because only login issues a token.
+- **`vercel.json`** rewrites every path to `index.html`, so a refresh on `/submissions`
+  does not 404.
+
 ## How to Install and Run
 
 ```bash
 npm install
+cp .env.example .env   # then set VITE_API_URL
 ```
 
-This app needs **two terminals**, and both must stay running:
+`VITE_API_URL` is the API's address with no trailing slash and no `/api` — either
+`http://localhost:4000` with itelect4-backend running locally (`npm run dev` there), or the
+deployed backend URL above. Then:
 
 ```bash
-npm run api    # terminal 1 -- the API on http://localhost:3001
-npm run dev    # terminal 2 -- the app on http://localhost:5173
+npm run dev            # the app on http://localhost:5173
 ```
 
-Then open http://localhost:5173 in your browser. Without `npm run api`, every page that
-loads data shows its red "is json-server running on port 3001?" panel.
+Vite reads `VITE_API_URL` when it starts and bakes it into a build, so restart `npm run dev`
+(or redeploy) after changing it.
 
 To type-check and build for production:
 
