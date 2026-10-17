@@ -85,7 +85,7 @@ function Layout() {
             </NavLink>
             {/* The one page that talks to Gemini, through our own API. */}
             <NavLink to="/review" className={linkClass}>
-              ai review
+              review
             </NavLink>
 
             {userName === null ? (
@@ -98,8 +98,10 @@ function Layout() {
                 </NavLink>
               </>
             ) : (
+              // Just "logout": the name made the nav wrap to two rows. The
+              // Submissions page still says who is signed in.
               <button onClick={logout} className={idleLink}>
-                logout ({userName})
+                logout
               </button>
             )}
 
