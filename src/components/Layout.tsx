@@ -80,17 +80,19 @@ function Layout() {
             <NavLink to="/courses" className={linkClass}>
               courses
             </NavLink>
-            <NavLink to="/people" className={linkClass}>
-              people
-            </NavLink>
             <NavLink to="/submissions" className={linkClass}>
               submissions
             </NavLink>
 
             {userName === null ? (
-              <NavLink to="/login" className={linkClass}>
-                login
-              </NavLink>
+              <>
+                <NavLink to="/login" className={linkClass}>
+                  login
+                </NavLink>
+                <NavLink to="/register" className={linkClass}>
+                  register
+                </NavLink>
+              </>
             ) : (
               <button onClick={logout} className={idleLink}>
                 logout ({userName})

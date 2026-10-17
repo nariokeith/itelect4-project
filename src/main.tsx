@@ -13,14 +13,11 @@ const queryClient = new QueryClient({
     queries: {
       // Default is 3 retries: a failure takes ~7s to show. 1 retry: about a second.
       retry: 1,
-      // Our API is json-server on localhost, so whether the LAPTOP has an
-      // internet connection is irrelevant to whether it can be reached.
-      // Under the default "online" mode Query refuses to even start a fetch
-      // when the browser reports offline -- with wifi off, every page would
-      // sit on its loading skeleton forever while json-server answers fine.
-      networkMode: "always",
+      // networkMode "always" is GONE. It was there because json-server ran on
+      // localhost and answered with wifi off. The API is on Vercel and its
+      // data in Atlas now, so the default "online" mode is right: offline,
+      // Query pauses instead of failing every request.
     },
-    mutations: { networkMode: "always" },
   },
 })
 

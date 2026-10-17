@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
-import type { ApiSubmission, ApiUser, Course, RoleCount } from "../types/index";
-import useToggle from "../hooks/useToggle";
-import { fetchCourses, fetchSubmissions, fetchUsers } from "../api/client";
+import type { ApiSubmission, Course } from "../types/index";
+import useAuthStore from "../store/authStore";
+import { API_URL, fetchCourses, fetchSubmissions } from "../api/client";
 import {
   chromePanel,
   pageHeading,
-  quietButton,
   sectionCount,
   sectionLabel,
   sectionRule,
@@ -15,36 +14,30 @@ import {
 const plural = (count: number, word: string): string =>
   count === 1 ? word : `${word}s`;
 
-const emptyTally: RoleCount = { student: 0, admin: 0, instructor: 0 };
-
-const tallyRoles = (users: ApiUser[]): RoleCount =>
-  users.reduce<RoleCount>(
-    (tally, user) => ({ ...tally, [user.role]: tally[user.role] + 1 }),
-    emptyTally
-  );
+// GONE: the role tally and the "show details" toggle. They counted the
+// people directory from json-server, and the API has no public list of users
+// -- it would hand every visitor everyone's email.
 
 function DashboardPage() {
-  // useToggle is NOT deleted -- this is the one place still using it.
-  const [showDetails, toggleDetails] = useToggle(false);
+  const token = useAuthStore((state) => state.token);
+  const isLoggedIn = token !== null;
 
-  // Three reads, three cache entries, all shared with the pages that own them.
+  // Two reads, two cache entries, both shared with the pages that own them.
   // Arriving here from /courses reuses ["courses"] with no second request.
   const courses = useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: fetchCourses,
   });
+  // Private now: only asked for once there is a token to send.
   const submissions = useQuery<ApiSubmission[]>({
-    queryKey: ["submissions"],
+    queryKey: ["submissions", token],
     queryFn: fetchSubmissions,
-  });
-  const users = useQuery<ApiUser[]>({
-    queryKey: ["users"],
-    queryFn: fetchUsers,
+    enabled: isLoggedIn,
   });
 
-  const isPending =
-    courses.isPending || submissions.isPending || users.isPending;
-  const isError = courses.isError || submissions.isError || users.isError;
+  // A disabled query stays pending forever, so it only counts when enabled.
+  const isPending = courses.isPending || (isLoggedIn && submissions.isPending);
+  const isError = courses.isError || (isLoggedIn && submissions.isError);
 
   if (isPending) {
     return (
@@ -67,20 +60,17 @@ function DashboardPage() {
           The overview didn't load
         </h2>
         <p className="mt-1 text-sm text-graphite dark:text-graphite-lift">
-          Is json-server running on port 3001?
+          {(courses.error ?? submissions.error)?.message} &mdash; tried{" "}
+          {API_URL}
         </p>
       </div>
     );
   }
 
-  // Past the two returns above, all three .data are defined.
+  // Past the two returns above, courses.data is defined. submissions.data is
+  // only defined once logged in, so a visitor sees zero of their own.
   const allCourses = courses.data;
-  const allSubmissions = submissions.data;
-  const allUsers = users.data;
-
-  // This was a module-level const while the data was a static import. It has
-  // to be computed per render now, because the data arrives after the module.
-  const roleTally = tallyRoles(allUsers);
+  const allSubmissions = submissions.data ?? [];
 
   const gradedCount = allSubmissions.filter(
     (s) => s.score !== undefined
@@ -103,23 +93,6 @@ function DashboardPage() {
           <span aria-hidden="true"> · </span>
           <span className={sectionCount}>{gradedCount}</span> graded
         </p>
-
-        <button onClick={toggleDetails} className={`${quietButton} mt-5`}>
-          {showDetails ? "hide details" : "show details"}
-        </button>
-
-        {showDetails && (
-          <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2 border-t border-rule pt-4 dark:border-ink-line">
-            {Object.entries(roleTally).map(([role, count]) => (
-              <div key={role}>
-                <dt className={sectionLabel}>{role}</dt>
-                <dd className="mt-1 font-mono text-lg font-medium text-ink dark:text-paper">
-                  {count}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
       </header>
 
       <section className="mt-10">
@@ -143,15 +116,17 @@ function DashboardPage() {
           </Link>
 
           <Link
-            to="/people"
+            to={isLoggedIn ? "/submissions" : "/register"}
             className={`group rounded-2xl p-5 transition hover:bg-white focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none dark:hover:bg-ink-raise dark:focus-visible:ring-paper ${chromePanel}`}
           >
-            <p className={sectionLabel}>people</p>
+            <p className={sectionLabel}>account</p>
             <p className="mt-2 font-mono text-2xl font-medium text-ink dark:text-paper">
-              {allUsers.length}
+              {isLoggedIn ? "signed in" : "register"}
             </p>
             <p className="mt-1 text-sm text-graphite dark:text-graphite-lift">
-              Students, instructors and admins
+              {isLoggedIn
+                ? "Your submissions are saved to your account"
+                : "Make an account to submit your work"}
             </p>
           </Link>
 
@@ -164,7 +139,7 @@ function DashboardPage() {
               {allSubmissions.length}
             </p>
             <p className="mt-1 text-sm text-graphite dark:text-graphite-lift">
-              Sign in required
+              {isLoggedIn ? "Yours, newest first" : "Sign in required"}
             </p>
           </Link>
         </div>

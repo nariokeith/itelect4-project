@@ -1,24 +1,48 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import useAuthStore from "../store/authStore";
+import { loginUser } from "../api/client";
+import { loginSchema } from "../schemas/authSchema";
+import type { LoginFormValues } from "../schemas/authSchema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { pageHeading, sectionLabel } from "../styles/ui";
 
-// The second page using Button, Input and Label -- and it keeps useState on
-// purpose. One field with one rule ("not empty") does not need a schema, a
-// resolver or useForm. The UI components and the form library are independent:
-// either one works without the other, and knowing when to stop is the point.
-function LoginPage() {
-  const [name, setName] = useState<string>("");
+const errorText = "text-sm text-late dark:text-late-lift";
 
-  const login = useAuthStore((state) => state.login);
+// The old page took any name and made up a token, so there was nothing to get
+// wrong and nothing to report. Now the password can be wrong, the email can
+// be unknown, and the API can be unreachable -- three failures to show.
+function LoginPage() {
+  const setSession = useAuthStore((state) => state.setSession);
   const navigate = useNavigate();
 
-  const handleLogin = (): void => {
-    login(name);
-    void navigate("/submissions");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: "onBlur",
+    defaultValues: { email: "", password: "" },
+  });
+
+  // Logging in is a POST that changes something on the server, so it is a
+  // mutation and not a query.
+  const logIn = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (reply) => {
+      // The token came from the API. The store just keeps it.
+      setSession(reply.token, reply.user.name);
+      void navigate("/submissions");
+    },
+  });
+
+  const onSubmit = (values: LoginFormValues): void => {
+    logIn.mutate(values);
   };
 
   return (
@@ -26,27 +50,67 @@ function LoginPage() {
       <p className={sectionLabel}>session</p>
       <h2 className={`mt-2 ${pageHeading}`}>Login</h2>
       <p className="mt-2 text-sm text-graphite dark:text-graphite-lift">
-        Any name works. Logging in unlocks the Submissions page.
+        Logging in unlocks the Submissions page.
       </p>
 
-      <div className="mt-5 grid gap-1.5">
-        <Label htmlFor="name" className="text-foreground">
-          Your name
-        </Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Juan dela Cruz"
-          className="font-mono"
-        />
-      </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-5 grid gap-4">
+        <div className="grid gap-1.5">
+          <Label htmlFor="email" className="text-foreground">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            aria-invalid={errors.email ? true : undefined}
+            placeholder="juan@dlsl.edu.ph"
+            className="font-mono"
+            {...register("email")}
+          />
+          {errors.email && <p className={errorText}>{errors.email.message}</p>}
+        </div>
 
-      {/* Disabling on empty is fine HERE: there is no error message this
-          would hide, and no blur-then-click to get in the way. */}
-      <Button onClick={handleLogin} disabled={name === ""} className="mt-3">
-        Log In
-      </Button>
+        <div className="grid gap-1.5">
+          <Label htmlFor="password" className="text-foreground">
+            Password
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            aria-invalid={errors.password ? true : undefined}
+            className="font-mono"
+            {...register("password")}
+          />
+          {errors.password && (
+            <p className={errorText}>{errors.password.message}</p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          disabled={logIn.isPending}
+          className="justify-self-start"
+        >
+          {logIn.isPending ? "Signing in…" : "Log In"}
+        </Button>
+      </form>
+
+      {/* The API's own sentence. A wrong password and an unknown email both
+          answer "Email or password is incorrect", deliberately. */}
+      {logIn.isError && (
+        <p className={`mt-4 ${errorText}`}>{logIn.error.message}</p>
+      )}
+
+      <p className="mt-6 text-sm text-graphite dark:text-graphite-lift">
+        No account yet?{" "}
+        <Link
+          to="/register"
+          className="font-semibold text-ink underline underline-offset-4 dark:text-paper"
+        >
+          Register
+        </Link>
+      </p>
     </div>
   );
 }

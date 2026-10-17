@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { ApiSubmission, ApiUser, Course } from "../types/index";
+import type { ApiSubmission, Course } from "../types/index";
 import { submissionSchema } from "../schemas/submissionSchema";
 import type { SubmissionFormValues } from "../schemas/submissionSchema";
 import SubmissionBadge from "../components/SubmissionBadge";
@@ -9,17 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  API_URL,
   createSubmission,
   fetchCourses,
   fetchSubmissions,
-  fetchUsers,
 } from "../api/client";
 import { chromePanel, pageHeading, quietButton, sectionLabel } from "../styles/ui";
 import useAuthStore from "../store/authStore";
-
-// The student the demo submits as. There is no /users lookup at login and no
-// real auth until Module 4, so this stays hard-coded on purpose.
-const DEMO_STUDENT_ID = "1";
 
 // The native <select> below is styled to match <Input>, which is a shadcn
 // component and reads these same variables. register() spreads onto a plain
@@ -32,6 +28,7 @@ const errorText = "text-sm text-late dark:text-late-lift";
 
 function SubmissionsPage() {
   const userName = useAuthStore((state) => state.userName);
+  const token = useAuthStore((state) => state.token);
   const queryClient = useQueryClient();
 
   // GONE: the repoUrl/courseCode useState pair. useForm holds both values now,
@@ -57,16 +54,12 @@ function SubmissionsPage() {
   // 1. READ -- the same useQuery pattern as CoursesPage.
   const { data, isPending, isError, error, refetch } = useQuery<ApiSubmission[]>(
     {
-      queryKey: ["submissions"],
+      // The token is in the key so each session gets its own cache entry: log
+      // out and in as somebody else and the last person's rows never flash up.
+      queryKey: ["submissions", token],
       queryFn: fetchSubmissions,
     }
   );
-
-  // The names beside each badge.
-  const { data: users } = useQuery<ApiUser[]>({
-    queryKey: ["users"],
-    queryFn: fetchUsers,
-  });
 
   // The dropdown options. This is the SAME ["courses"] entry CoursesPage
   // filled, so arriving here from /courses costs no second request.
@@ -93,17 +86,13 @@ function SubmissionsPage() {
   // handleSubmit runs the resolver first and only calls this if every rule
   // passed. There is no `if` anywhere deciding that -- handleSubmit is the
   // gate, and the schema is what it asks.
+  //
+  // The form and the API agree on exactly two fields now. The API takes the
+  // owner off the token and the schema defaults the date, so there is nothing
+  // left for this handler to add.
   const onSubmit = (values: SubmissionFormValues): void => {
-    addSubmission.mutate({
-      studentId: DEMO_STUDENT_ID,
-      courseCode: values.courseCode,
-      repoUrl: values.repoUrl,
-      submittedAt: new Date().toISOString(), // a STRING, not a Date
-    });
+    addSubmission.mutate(values);
   };
-
-  const nameFor = (studentId: string): string =>
-    users?.find((u) => u.id === studentId)?.name ?? "Unknown student";
 
   if (isPending) {
     return (
@@ -133,7 +122,7 @@ function SubmissionsPage() {
           Submissions didn't load
         </h2>
         <p className="mt-1 text-sm text-graphite dark:text-graphite-lift">
-          {error.message} &mdash; is json-server running on port 3001?
+          {error.message} &mdash; tried {API_URL}/api/submissions
         </p>
         <button onClick={() => void refetch()} className={`${quietButton} mt-4`}>
           retry
@@ -221,7 +210,7 @@ function SubmissionsPage() {
         {data.map((s) => (
           <SubmissionBadge key={s.id} submission={s}>
             <p className="mt-2 font-mono text-xs text-paper/70 dark:text-ink/70">
-              {nameFor(s.studentId)} · {s.courseCode}
+              {userName} · {s.courseCode}
             </p>
           </SubmissionBadge>
         ))}
