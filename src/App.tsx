@@ -4,10 +4,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
 import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
-import PeoplePage from "./pages/PeoplePage";
-import PersonDetailPage from "./pages/PersonDetailPage";
 import SubmissionsPage from "./pages/SubmissionsPage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
@@ -19,10 +18,9 @@ function App() {
         <Route path="courses" element={<CoursesPage />} />
         <Route path="courses/:code" element={<CourseDetailPage />} />
 
-        <Route path="people" element={<PeoplePage />} />
-        <Route path="people/:id" element={<PersonDetailPage />} />
-
         <Route path="login" element={<LoginPage />} />
+        {/* Public, like login: you cannot be logged in yet. */}
+        <Route path="register" element={<RegisterPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="submissions" element={<SubmissionsPage />} />
