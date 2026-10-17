@@ -83,6 +83,10 @@ function Layout() {
             <NavLink to="/submissions" className={linkClass}>
               submissions
             </NavLink>
+            {/* The one page that talks to Gemini, through our own API. */}
+            <NavLink to="/review" className={linkClass}>
+              ai review
+            </NavLink>
 
             {userName === null ? (
               <>

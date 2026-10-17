@@ -41,6 +41,7 @@ to see what pages exist, read that one file.
 | `/submissions` | `SubmissionsPage` | **protected** — redirects to `/login` without a token |
 | `/login` | `LoginPage` | email + password, checked by the API (GT4 Part 2) |
 | `/register` | `RegisterPage` | creates the account, then logs in (GT4 Part 2) |
+| `/review` | `ReviewPage` | **protected** — asks the API for a Gemini review (GT5) |
 
 `/people` and `/people/:id` were removed in GT4 Part 2: they read json-server's `/users`,
 and the real API has no public list of users.
@@ -312,6 +313,21 @@ API. Both are deployed on Vercel:
   calls `/api/auth/register` then `/api/auth/login`, because only login issues a token.
 - **`vercel.json`** rewrites every path to `index.html`, so a refresh on `/submissions`
   does not 404.
+
+## AI Review (GT5)
+
+`/review` is a protected page where a student describes their project and gets a review
+from Gemini: a readiness badge (`ready` / `almost` / `not-yet`), a one-sentence summary,
+strengths, and what to fix before submitting. Every field of the reply is shown.
+
+- The browser **never talks to Gemini**. `askAi()` in `src/api/client.ts` calls the
+  backend's `POST /api/ai` through the same `request()` helper and Bearer token as every
+  private call. The Gemini key exists only on the backend.
+- The form uses React Hook Form + Zod (`src/schemas/reviewSchema.ts`) with the same
+  20–2000 character rule and messages as the API, and sends through `useMutation`, so a
+  review is only requested when the button is pressed.
+- Errors shown are the API's own sentences: the rate limit, the AI quota, or a reply that
+  failed the schema.
 
 ## How to Install and Run
 

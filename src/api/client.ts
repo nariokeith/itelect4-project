@@ -1,4 +1,5 @@
 import type {
+  AiReview,
   ApiSubmission,
   ApiUser,
   AuthReply,
@@ -109,5 +110,17 @@ export function loginUser(body: {
   return request<AuthReply>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify(body),
+  });
+}
+
+// ---- ai: private, like submissions. The token goes on automatically, which
+// matters more here than anywhere: without it, anyone could spend the
+// Gemini quota. No key and no Gemini address in this file -- the browser
+// only ever talks to our own API.
+
+export function askAi(prompt: string): Promise<AiReview> {
+  return request<AiReview>("/api/ai", {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
   });
 }
