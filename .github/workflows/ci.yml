@@ -1,0 +1,35 @@
+# GitHub reads every .yml file in .github/workflows/ and runs it when its "on"
+# event happens. This one runs on every push, to any branch.
+name: CI
+
+on: push
+
+jobs:
+  test:
+    # A fresh Linux machine from GitHub. Nothing from this laptop is on it.
+    runs-on: ubuntu-latest
+
+    steps:
+      # Copies this repo, at the commit that was pushed, onto the machine.
+      - uses: actions/checkout@v7
+
+      # Installs Node 24 and keeps npm's download cache between runs.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      # Installs exactly what package-lock.json lists. node_modules is in
+      # .gitignore, so checkout did not copy it.
+      - run: npm ci
+
+      # oxlint. Warnings print but do not fail the run; errors do.
+      - run: npm run lint
+
+      # The three test files. No secret needed: vite.config.ts gives the tests
+      # their own VITE_API_URL, and they never call the API.
+      - run: npm test
+
+      # tsc -b, then vite build. A type error anywhere in src/ fails here,
+      # the test files included.
+      - run: npm run build
