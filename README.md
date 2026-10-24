@@ -1,5 +1,24 @@
 # itelect4-project
 
+[![CI](https://github.com/nariokeith/itelect4-project/actions/workflows/ci.yml/badge.svg)](https://github.com/nariokeith/itelect4-project/actions/workflows/ci.yml)
+
+- **Live app:** https://itelect4-project-eta.vercel.app
+- **Live API:** https://itelect4-backend-zeta.vercel.app/api/health
+- **Backend repo:** https://github.com/nariokeith/itelect4-backend
+
+## Architecture
+
+```mermaid
+flowchart LR
+  fe["itelect4-project<br/>React + Vite on Vercel"]
+  be["itelect4-backend<br/>Express on Vercel"]
+  db[("MongoDB Atlas")]
+  ai["Gemini API"]
+  fe -- "fetch + Bearer token" --> be
+  be -- "Mongoose" --> db
+  be -- "GEMINI_API_KEY" --> ai
+```
+
 ## Project Concept
 
 A mini course-submission tracker for ITELECT4. The system models **Users** (students, admins, and instructors), the **Courses** they take, and the **Submissions** they turn in for graded tasks. A student submits a GitHub repository link for a course, the submission moves through a status lifecycle (Pending → Graded / Late), and instructors can review and score it. This project is built incrementally across the semester — every graded task (GT1–GT6) imports and extends the shared types defined in `types/index.ts`.
@@ -334,6 +353,27 @@ strengths, and what to fix before submitting. Every field of the reply is shown.
   review is only requested when the button is pressed.
 - Errors shown are the API's own sentences: the rate limit, the AI quota, or a reply that
   failed the schema.
+
+## Tests and CI (GT6)
+
+Vitest runs three test files in jsdom, a pretend browser page inside Node. Each file sits
+beside the file it tests:
+
+| File | Kind | What it checks |
+|---|---|---|
+| `src/components/SubmissionBadge.test.tsx` | component | the score and `graded`, or `--` and `pending` with no score |
+| `src/hooks/useToggle.test.ts` | hook | the starting value, then each flip inside `act()` |
+| `src/pages/LoginPage.test.tsx` | form | the schema's exact messages, and no `fetch` while the form is invalid |
+
+```bash
+npm test               # every test once
+npm run test:watch     # re-runs on every save
+```
+
+The `test` block in `vite.config.ts` sets `environment: "jsdom"`, the setup file
+(`src/test/setup.ts`), and a fixed `VITE_API_URL`, so the tests need no `.env`.
+`.github/workflows/ci.yml` runs `npm ci`, lint, the tests and the build on every push; the
+badge at the top shows the latest result.
 
 ## How to Install and Run
 
