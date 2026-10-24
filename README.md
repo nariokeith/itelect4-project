@@ -47,8 +47,14 @@ to see what pages exist, read that one file.
 and the real API has no public list of users.
 | `*` | `NotFoundPage` | catch-all, so no URL renders blank |
 
-Every route is nested inside `Layout`, which owns the nav bar, the dark mode toggle, the
-density control and the `<Outlet />` each page renders into. `ProtectedRoute` is a pathless
+Every route is nested inside `Layout`, which owns the nav bar and the `<Outlet />` each page
+renders into. The nav has two groups: the page links on the left; login/register (or
+logout), the dark mode toggle and a "view" dropdown holding the comfortable/compact density
+setting on the right. The dark mode toggle is `BulbToggle`, a tuggable light bulb adapted
+from [jh3y's CodePen](https://codepen.io/jh3y/pen/VwjgdLj) with GSAP's `Draggable` and
+`MorphSVGPlugin` — tug the cord, or click it / press Enter, since it is a real button. The
+dropdown is shadcn's `dropdown-menu`; its popup is portalled outside Layout's `.dark`
+wrapper, so it carries the class itself. `ProtectedRoute` is a pathless
 layout route: it guards what it wraps without adding a segment to the URL.
 
 Auth is a typed Zustand store (`src/store/authStore.ts`) holding `token`, `userName`,
