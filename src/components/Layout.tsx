@@ -5,8 +5,6 @@ import BulbToggle from "./BulbToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
@@ -111,25 +109,23 @@ function Layout() {
                   align="end"
                   className={`w-auto min-w-36 font-mono ${isDarkMode ? "dark" : ""}`}
                 >
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="font-mono">
-                      density
-                    </DropdownMenuLabel>
-                    <DropdownMenuRadioGroup
-                      value={density}
-                      onValueChange={handleDensityChange}
+                  {/* No visible heading: it read as a button that did nothing.
+                      aria-label still names the group for screen readers. */}
+                  <DropdownMenuRadioGroup
+                    aria-label="Density"
+                    value={density}
+                    onValueChange={handleDensityChange}
+                  >
+                    <DropdownMenuRadioItem
+                      value="comfortable"
+                      className="text-xs"
                     >
-                      <DropdownMenuRadioItem
-                        value="comfortable"
-                        className="text-xs"
-                      >
-                        comfortable
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="compact" className="text-xs">
-                        compact
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuGroup>
+                      comfortable
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="compact" className="text-xs">
+                      compact
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
