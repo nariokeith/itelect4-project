@@ -17,26 +17,17 @@ import {
   sectionRule,
 } from "../styles/ui";
 
-// GONE from this file: the courses/isLoading/isError useState trio, the
-// useEffect + setTimeout that faked a network call, the mockData import, and
-// the "simulate error" button. Four lines of useQuery replaced all of it, and
-// brought caching, retries and background refetching along with them.
-
 function CoursesPage() {
   const { data, isPending, isError, error, refetch } = useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: fetchCourses,
   });
 
-  // The search box reads and writes the store now, not local state. isCompact
-  // comes from the store too, so this page no longer needs useOutletContext.
   const searchTerm = useUiStore((state) => state.searchTerm);
   const setSearchTerm = useUiStore((state) => state.setSearchTerm);
   const isCompact = useUiStore((state) => state.isCompact);
   const previousSearch = usePrevious(searchTerm);
 
-  // The ref stays: it drives the "focus" button, which is a real feature and
-  // has nothing to do with how the courses are fetched.
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const focusSearch = (): void => {
@@ -99,8 +90,6 @@ function CoursesPage() {
     );
   }
 
-  // Below this line data is Course[], never undefined -- the two returns above
-  // ruled the other cases out, and TypeScript followed.
   const filteredCourses = data.filter(
     (c) =>
       c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -113,10 +102,6 @@ function CoursesPage() {
       <h2 className={`mt-2 ${pageHeading}`}>Courses</h2>
 
       <div className="mt-6 flex gap-2">
-        {/* A third page on the shadcn <Input>. Every hand-written class the
-            old <input> carried now lives in src/components/ui/input.tsx, and
-            the ref still works -- in React 19 ref is an ordinary prop, so it
-            travels through {...props} to the real DOM node. */}
         <Input
           ref={searchInputRef}
           type="text"

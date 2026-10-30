@@ -28,9 +28,6 @@ function RegisterPage() {
   });
 
   const signUp = useMutation({
-    // Two requests, in order. /api/auth/register creates the user but issues
-    // no token -- login is the only route that signs one. Without the second
-    // call you would land on the login page to type the same password again.
     mutationFn: async (values: RegisterFormValues) => {
       await registerUser(values);
       return loginUser({ email: values.email, password: values.password });
@@ -111,7 +108,6 @@ function RegisterPage() {
         </Button>
       </form>
 
-      {/* The API's own sentence, e.g. "That email is already registered". */}
       {signUp.isError && (
         <p className={`mt-4 ${errorText}`}>{signUp.error.message}</p>
       )}

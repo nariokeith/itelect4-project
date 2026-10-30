@@ -19,11 +19,6 @@ function CourseDetailPage() {
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
 
-  // GONE: const course = allCourses.find((c) => c.code === code);
-  //
-  // The code from the URL goes INTO the key, so /courses/CSSWENG and
-  // /courses/ITELECT4 get one cache entry each instead of sharing one. Leave
-  // `code` out and every course would quietly overwrite the last one.
   const {
     data: course,
     isPending,
@@ -31,16 +26,10 @@ function CourseDetailPage() {
     error,
   } = useQuery<Course>({
     queryKey: ["courses", code],
-    // An arrow function, because we need to pass an argument. Writing
-    // queryFn: fetchCourseByCode would hand Query the function with no code
-    // to give it. The ! is safe only because `enabled` is right below.
     queryFn: () => fetchCourseByCode(code!),
     enabled: code !== undefined,
   });
 
-  // The same ["submissions", token] entry SubmissionsPage uses. Two components, one
-  // cache entry, one request -- not two. Submissions are private now, so a
-  // visitor who has not logged in does not ask for them and get a 401.
   const { data: submissions } = useQuery<ApiSubmission[]>({
     queryKey: ["submissions", token],
     queryFn: fetchSubmissions,
@@ -56,8 +45,6 @@ function CourseDetailPage() {
     );
   }
 
-  // REPLACES Session 6's `if (course === undefined)` block: a bad code makes
-  // fetchCourseByCode throw, and the throw lands here instead.
   if (isError) {
     return (
       <div className={notFoundPanel}>
@@ -76,8 +63,6 @@ function CourseDetailPage() {
     );
   }
 
-  // submissions is undefined until its own query settles, so the counts show
-  // zero for a moment rather than crashing.
   const courseSubmissions = (submissions ?? []).filter(
     (s) => s.courseCode === course.code
   );

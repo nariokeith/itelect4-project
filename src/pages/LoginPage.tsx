@@ -13,9 +13,6 @@ import { pageHeading, sectionLabel } from "../styles/ui";
 
 const errorText = "text-sm text-late dark:text-late-lift";
 
-// The old page took any name and made up a token, so there was nothing to get
-// wrong and nothing to report. Now the password can be wrong, the email can
-// be unknown, and the API can be unreachable -- three failures to show.
 function LoginPage() {
   const setSession = useAuthStore((state) => state.setSession);
   const navigate = useNavigate();
@@ -30,12 +27,9 @@ function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  // Logging in is a POST that changes something on the server, so it is a
-  // mutation and not a query.
   const logIn = useMutation({
     mutationFn: loginUser,
     onSuccess: (reply) => {
-      // The token came from the API. The store just keeps it.
       setSession(reply.token, reply.user.name);
       void navigate("/submissions");
     },
@@ -96,8 +90,6 @@ function LoginPage() {
         </Button>
       </form>
 
-      {/* The API's own sentence. A wrong password and an unknown email both
-          answer "Email or password is incorrect", deliberately. */}
       {logIn.isError && (
         <p className={`mt-4 ${errorText}`}>{logIn.error.message}</p>
       )}

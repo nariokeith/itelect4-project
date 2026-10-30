@@ -20,13 +20,10 @@ function App() {
         <Route path="courses/:code" element={<CourseDetailPage />} />
 
         <Route path="login" element={<LoginPage />} />
-        {/* Public, like login: you cannot be logged in yet. */}
         <Route path="register" element={<RegisterPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="submissions" element={<SubmissionsPage />} />
-          {/* Behind the same guard: the API refuses it without a token
-              anyway, so the page should not offer it. */}
           <Route path="review" element={<ReviewPage />} />
         </Route>
 
