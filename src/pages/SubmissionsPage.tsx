@@ -17,10 +17,6 @@ import {
 import { chromePanel, pageHeading, quietButton, sectionLabel } from "../styles/ui";
 import useAuthStore from "../store/authStore";
 
-// The native <select> below is styled to match <Input>, which is a shadcn
-// component and reads these same variables. register() spreads onto a plain
-// <select> exactly as it does onto an <input>, so there is no <Select>
-// component to install for this.
 const selectClass =
   "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:aria-invalid:border-destructive/50";
 
@@ -31,65 +27,37 @@ function SubmissionsPage() {
   const token = useAuthStore((state) => state.token);
   const queryClient = useQueryClient();
 
-  // GONE: the repoUrl/courseCode useState pair. useForm holds both values now,
-  // in the DOM nodes themselves, so a keystroke no longer re-renders this
-  // component -- and this component re-renders the whole submission grid.
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<SubmissionFormValues>({
-    // The adapter. React Hook Form has never heard of Zod and Zod has never
-    // heard of React; this one line is the entire connection between them.
-    // The import path ends in /zod -- the package root gives you nothing.
     resolver: zodResolver(submissionSchema),
-    // Check a field when you LEAVE it, so a bad URL is called out before you
-    // reach the button rather than after.
     mode: "onBlur",
-    // What reset() puts back. Without these there is nothing to return to.
     defaultValues: { courseCode: "", repoUrl: "" },
   });
 
-  // 1. READ -- the same useQuery pattern as CoursesPage.
   const { data, isPending, isError, error, refetch } = useQuery<ApiSubmission[]>(
     {
-      // The token is in the key so each session gets its own cache entry: log
-      // out and in as somebody else and the last person's rows never flash up.
       queryKey: ["submissions", token],
       queryFn: fetchSubmissions,
     }
   );
 
-  // The dropdown options. This is the SAME ["courses"] entry CoursesPage
-  // filled, so arriving here from /courses costs no second request.
   const { data: courses } = useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: fetchCourses,
   });
 
-  // 2. WRITE -- unchanged since Session 7. Today changed what reaches
-  // mutate(), not the write path itself.
   const addSubmission = useMutation({
     mutationFn: createSubmission,
     onSuccess: () => {
-      // "the submissions list is out of date now -- go and refetch it".
-      // This marks the key stale; it does not fetch. Query refetches because
-      // something on screen is still using that entry.
       void queryClient.invalidateQueries({ queryKey: ["submissions"] });
-      // One call clears every field, instead of one setter per field. It sits
-      // in onSuccess so the boxes empty AFTER the row is really saved.
       reset();
     },
   });
 
-  // handleSubmit runs the resolver first and only calls this if every rule
-  // passed. There is no `if` anywhere deciding that -- handleSubmit is the
-  // gate, and the schema is what it asks.
-  //
-  // The form and the API agree on exactly two fields now. The API takes the
-  // owner off the token and the schema defaults the date, so there is nothing
-  // left for this handler to add.
   const onSubmit = (values: SubmissionFormValues): void => {
     addSubmission.mutate(values);
   };
@@ -136,16 +104,11 @@ function SubmissionsPage() {
       <p className={sectionLabel}>signed in as {userName}</p>
       <h2 className={`mt-2 ${pageHeading}`}>Submissions</h2>
 
-      {/* handleSubmit(onSubmit), never onSubmit on its own: the bare version
-          compiles, reloads the page and validates nothing. It also calls
-          preventDefault() for us. */}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className={`mt-6 grid gap-4 rounded-2xl p-5 sm:grid-cols-2 ${chromePanel}`}
       >
         <div className="grid content-start gap-1.5">
-          {/* text-foreground, not text-ink dark:text-paper: index.css defines
-              --foreground twice, so one class covers both themes. */}
           <Label htmlFor="courseCode" className="text-foreground">
             Course
           </Label>
@@ -162,8 +125,6 @@ function SubmissionsPage() {
               </option>
             ))}
           </select>
-          {/* && short-circuits: errors.courseCode only exists while that
-              field is broken, so reading .message is guarded by its presence. */}
           {errors.courseCode && (
             <p className={errorText}>{errors.courseCode.message}</p>
           )}
@@ -173,9 +134,6 @@ function SubmissionsPage() {
           <Label htmlFor="repoUrl" className="text-foreground">
             Repository URL
           </Label>
-          {/* aria-invalid is read by a screen reader AND by input.tsx, which
-              styles its red border off it -- so what is seen and what is heard
-              cannot disagree. undefined, not false: the attribute disappears. */}
           <Input
             id="repoUrl"
             aria-invalid={errors.repoUrl ? true : undefined}
@@ -188,9 +146,6 @@ function SubmissionsPage() {
           )}
         </div>
 
-        {/* Never disabled on "invalid": clicking it is what reveals the
-            messages, and with mode "onBlur" a disabled button would also need
-            two clicks. Only a save already in flight disables it. */}
         <Button
           type="submit"
           disabled={addSubmission.isPending}

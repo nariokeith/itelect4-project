@@ -91,43 +91,26 @@ export const enum Role {
   Instructor = "instructor",
 }
 
-// ---------------------------------------------------------------- SESSION 10
-// The shapes itelect4-backend actually returns, which are NOT the ones
-// declared above. JSON has no Date, and MongoDB ids are 24 hex characters.
-// Both types below are DERIVED from the originals, so User and Submission
-// stay the single source of truth: add a field there and these inherit it.
-
-// What /api/auth/register sends back, and what sits inside the login reply.
 export type ApiUser = Omit<User, "id"> & {
-  id: string; // 24 hex characters, from MongoDB's _id
+  id: string;
 };
 
 export type ApiSubmission = Omit<
   Submission,
   "id" | "studentId" | "submittedAt"
 > & {
-  id: string; // 24 hex characters, from MongoDB's _id
-  studentId: string; // the owner's _id, also 24 hex characters
-  submittedAt: string; // an ISO string, never a Date object
+  id: string;
+  studentId: string;
+  submittedAt: string;
 };
 
-// What we SEND when creating one. The server fills in studentId from the
-// token and submittedAt from the schema default, so these two fields are the
-// whole request body.
 export type NewSubmission = Pick<Submission, "courseCode" | "repoUrl">;
 
-// What /api/auth/login sends back. The token goes in the Authorization
-// header on every request after this one.
 export interface AuthReply {
   token: string;
   user: ApiUser;
 }
 
-// ---------------------------------------------------------------- SESSION 11
-// What POST /api/ai sends back. itelect4-backend's Review type is derived
-// from the Zod schema in its src/schemas/review.ts, and this has to say the
-// same thing. Nothing checks that the two agree across the repos -- keep
-// them in step by hand.
 export interface AiReview {
   summary: string;
   strengths: string[];

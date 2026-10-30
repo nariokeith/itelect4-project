@@ -4,27 +4,18 @@ import { Draggable } from "gsap/Draggable";
 import { MorphSVGPlugin } from "gsap/MorphSVGPlugin";
 import useUiStore from "../store/uiStore";
 
-// Adapted from jh3y's "Tuggable Light Bulb!" (codepen.io/jh3y/pen/VwjgdLj).
-// The pen loads MorphSVG from a CodePen URL; both plugins ship inside the
-// gsap package we already have, so they come from there instead.
 gsap.registerPlugin(Draggable, MorphSVGPlugin);
 
-// The pen's own numbers: the cord's resting end, and how long each wobble of
-// the cord takes.
 const END_X = 98.7255;
 const END_Y = 380.5405;
 const CORD_DURATION = 0.1;
 const VIEWBOX_HEIGHT = 481.081;
 
-// The pen asks for a 50px tug on a bulb 50vmin tall. This one is ~76px tall,
-// so a 50px pull would be most of the navbar -- 20px keeps the same feel.
 const TUG_DISTANCE_PX = 20;
 
 const prefersReducedMotion = (): boolean =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// The pen drives every colour from one --on variable. Here "on" IS light mode,
-// so the same job is done by the palette's own dark: variants.
 const cordColor = "stroke-graphite dark:stroke-graphite-lift";
 
 function BulbToggle() {
@@ -45,18 +36,12 @@ function BulbToggle() {
       const dummyCord = dummy?.querySelector("line");
       if (cords.length < 2 || !hit || !dummy || !dummyCord) return;
 
-      // Draggable moves this detached div, never the SVG itself. Its x and y
-      // are read back and written onto the dummy cord's end point.
       const proxy = document.createElement("div");
       const reset = (): void => {
         gsap.set(proxy, { x: END_X, y: END_Y });
       };
       reset();
 
-      // The straight cord morphs through the four wavy ones and back. It no
-      // longer flips the theme in onStart like the pen did -- a click on the
-      // bulb toggles too, so the toggle lives in pull() and this is just the
-      // animation.
       const swing = gsap.timeline({
         paused: true,
         onStart: () => {
@@ -83,9 +68,6 @@ function BulbToggle() {
 
       let startX = 0;
       let startY = 0;
-      // SVG units per screen pixel. The pen got away with ignoring this
-      // because its bulb was drawn close to 1:1; at navbar size one pixel of
-      // drag is ~6 units, and without it the cord would barely follow.
       let unitsPerPx = 1;
 
       Draggable.create(proxy, {
@@ -114,8 +96,6 @@ function BulbToggle() {
             duration: prefersReducedMotion() ? 0 : CORD_DURATION,
             onComplete: () => {
               if (travelled > TUG_DISTANCE_PX) {
-                // getState(), not the toggleDarkMode above: this callback is
-                // created once and would otherwise hold a stale closure.
                 useUiStore.getState().toggleDarkMode();
                 if (!prefersReducedMotion()) swing.restart();
               } else {
@@ -127,16 +107,12 @@ function BulbToggle() {
       });
     }, scene);
 
-    // Reverts every tween, the timeline AND the Draggable -- Draggable
-    // registers itself with the context it was created in.
     return () => {
       swingRef.current = null;
       ctx.revert();
     };
   }, []);
 
-  // The pen could only be tugged. A real button means a click, Enter or Space
-  // works too -- dragging must never be the only way (WCAG 2.5.7).
   const pull = (): void => {
     toggleDarkMode();
     if (!prefersReducedMotion()) swingRef.current?.restart();
@@ -185,8 +161,6 @@ function BulbToggle() {
         </defs>
 
         <g>
-          {/* data-cord 0 is the straight cord that swings; 1-4 are only ever
-              morph targets, so all five start hidden. */}
           {[
             "M123.228-28.56v150.493",
             "M123.228-28.59s28 8.131 28 19.506-18.667 13.005-28 19.507c-9.333 6.502-28 8.131-28 19.506s28 19.507 28 19.507",
@@ -215,8 +189,6 @@ function BulbToggle() {
               y2={END_Y}
             />
           </g>
-          {/* The only part of the SVG that takes the pointer: the grab spot
-              at the end of the cord. */}
           <circle
             data-hit
             className="pointer-events-auto"

@@ -14,28 +14,20 @@ import {
 const plural = (count: number, word: string): string =>
   count === 1 ? word : `${word}s`;
 
-// GONE: the role tally and the "show details" toggle. They counted the
-// people directory from json-server, and the API has no public list of users
-// -- it would hand every visitor everyone's email.
-
 function DashboardPage() {
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = token !== null;
 
-  // Two reads, two cache entries, both shared with the pages that own them.
-  // Arriving here from /courses reuses ["courses"] with no second request.
   const courses = useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: fetchCourses,
   });
-  // Private now: only asked for once there is a token to send.
   const submissions = useQuery<ApiSubmission[]>({
     queryKey: ["submissions", token],
     queryFn: fetchSubmissions,
     enabled: isLoggedIn,
   });
 
-  // A disabled query stays pending forever, so it only counts when enabled.
   const isPending = courses.isPending || (isLoggedIn && submissions.isPending);
   const isError = courses.isError || (isLoggedIn && submissions.isError);
 
@@ -67,8 +59,6 @@ function DashboardPage() {
     );
   }
 
-  // Past the two returns above, courses.data is defined. submissions.data is
-  // only defined once logged in, so a visitor sees zero of their own.
   const allCourses = courses.data;
   const allSubmissions = submissions.data ?? [];
 
